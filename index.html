@@ -2375,8 +2375,7 @@ html<!DOCTYPE html>
         if (!state.isGameStarted || !state.questionIndex || state.questionIndex === 0) {
             if (ruleDiv) ruleDiv.classList.add('hidden');
             waiting.classList.remove('hidden');
-            answering.classList.ad
-             d('hidden');
+            answering.classList.add('hidden');
             result.classList.add('hidden');
             return;
         }
@@ -2710,6 +2709,7 @@ html<!DOCTYPE html>
 
 </body>
 </html>
+
 
 
 
