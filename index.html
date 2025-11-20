@@ -1405,7 +1405,7 @@
         if (state.isGameStarted && state.preGameExplain) {
             prep.classList.add('hidden');
             live.classList.remove('hidden');
-            timerDisplayEl.innerHTML = '규칙 안내 중';
+            timerDisplayEl.innerHTML = '';
             currentQuestionEl.innerHTML =
                 `학생들에게 이번 게임 규칙을 안내하는 중입니다.<br>` +
                 `<button class="block-button green-button" style="margin-top:10px;" onclick="startFirstQuestion()">▶️ 첫 문제 출제하기</button>`;
@@ -2177,6 +2177,7 @@
 
 </body>
 </html>
+
 
 
 
