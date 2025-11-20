@@ -3,263 +3,454 @@
 <head>
     <meta charset="UTF-8">
     <title>Roblox MAX! OX Quiz - Real-time Problem Setting & Management</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Bangers&display=swap" rel="stylesheet">
-    
+
+    <!-- 귀엽고 읽기 쉬운 한글 폰트 -->
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gamja+Flower&display=swap" rel="stylesheet">
+
+    <!-- Firebase v8 -->
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
 
     <style>
-        /* ---------------------- 1. Roblox Global Style (글꼴 개선) ---------------------- */
-        body { 
-            font-family: 'Bangers', cursive; /* 본문 글꼴 */
-            margin: 0; 
-            padding: 20px; 
-            /* 로블록스 잔디 블록 느낌 배경 */
-            background-color: #64dd17; 
-            background-image: 
-                linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.1) 75%, rgba(0,0,0,0.1)),
-                linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.1) 75%, rgba(0,0,0,0.1));
-            background-size: 50px 50px; 
-            background-position: 0 0, 25px 25px; 
-            color: #212121; 
+        * {
+            box-sizing: border-box;
         }
-        #app { 
-            max-width: 1000px; /* 너비 확장 */
-            margin: 20px auto; 
-            padding: 40px; 
-            background: #ffffff; 
-            border: 8px solid #303030; 
-            border-radius: 15px; 
-            box-shadow: 15px 15px 0px #303030; 
+
+        /* ---------------------- 1. Global Style ---------------------- */
+        body {
+            margin: 0;
+            padding: 16px;
+            background: linear-gradient(135deg, #e3f2fd, #fff3e0);
+            font-family: 'Gamja Flower', 'Segoe UI', sans-serif;
+            color: #2c3e50;
+        }
+
+        #app {
+            max-width: 1000px;
+            margin: 16px auto;
+            padding: 24px 20px 32px;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.15);
+            border: 3px solid #90caf9;
             position: relative;
             z-index: 10;
         }
-        h2, h3, h4 { 
-            font-family: 'Press Start 2P', cursive; /* 헤드라인 글꼴 */
-            color: #000000; 
+
+        h2, h3, h4 {
+            font-family: 'Jua', 'Gamja Flower', sans-serif;
+            color: #0d47a1;
             text-align: center;
-            text-shadow: 3px 3px 0px #ffea00; 
-            margin-bottom: 25px;
+            margin-top: 8px;
+            margin-bottom: 18px;
         }
-        h2 { font-size: 2.5em; }
-        h3 { font-size: 2em; }
-        h4 { font-size: 1.5em; }
 
-        /* ---------------------- 2. Block Button Style (동일) ---------------------- */
-        button, .block-button { 
-            font-family: 'Press Start 2P', cursive;
-            padding: 18px 30px; 
-            margin: 10px; 
-            border: 5px solid #000000; 
-            border-radius: 8px; 
-            font-size: 1.2em; 
-            font-weight: bold; 
-            cursor: pointer; 
-            box-shadow: 6px 6px 0px #000000; 
-            transition: all 0.1s;
-            text-shadow: 2px 2px 0 #000;
-            color: white;
-            background-color: #3498db; 
-            letter-spacing: 1px;
+        h2 {
+            font-size: 2.2rem;
+            text-shadow: 2px 2px 0px #ffe082;
         }
-        button:active, .block-button:active {
-            box-shadow: 2px 2px 0px #000000;
-            transform: translate(4px, 4px); 
-        }
-        .green-button { background-color: #2ecc71; } 
-        .red-button { background-color: #e74c3c; } 
-        .yellow-button { background-color: #f1c40f; color: #000; text-shadow: none; } 
 
-        /* ---------------------- 3. Layout and Elements (시각화 수정) ---------------------- */
+        h3 {
+            font-size: 1.8rem;
+            text-shadow: 1px 1px 0px #ffe082;
+        }
+
+        h4 {
+            font-size: 1.4rem;
+        }
+
         .hidden { display: none !important; }
         .centered { text-align: center; }
-        input, select, label { font-family: 'Bangers', cursive; }
-        label { font-family: 'Press Start 2P', cursive; }
 
-        /* 입력 필드 확장 (NEW!) */
-        textarea#question-input {
-            width: 80%;
-            max-width: 450px;
-            height: 100px; /* 높이 확장 */
-            padding: 12px; 
-            margin: 10px auto; 
-            border: 3px solid #000000; 
-            border-radius: 8px; 
-            box-shadow: 4px 4px 0px #000000; 
-            font-size: 1.1em; 
+        label {
+            font-family: 'Jua', 'Gamja Flower', sans-serif;
             display: block;
-            background-color: #fefefe;
-            color: #212121;
+            margin-top: 12px;
+            margin-bottom: 4px;
+            font-size: 1rem;
+            color: #37474f;
+        }
+
+        input, select, textarea {
+            font-family: 'Gamja Flower', 'Segoe UI', sans-serif;
+            font-size: 1rem;
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 2px solid #90caf9;
+            outline: none;
+            width: 100%;
+            max-width: 420px;
+            background: #fdfefe;
+            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: #42a5f5;
+            box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.25);
+            background: #ffffff;
+        }
+
+        textarea#question-input {
+            min-height: 90px;
             resize: vertical;
-            box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
+            margin: 4px 0 8px;
         }
-        
-        /* 문제 목록 스타일 */
+
+        /* ---------------------- 2. Button Style ---------------------- */
+        button, .block-button {
+            font-family: 'Jua', 'Gamja Flower', sans-serif;
+            padding: 12px 22px;
+            margin: 6px;
+            border: none;
+            border-radius: 999px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.1);
+            transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, background 0.1s;
+            color: #ffffff;
+        }
+
+        button:active, .block-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
+        }
+
+        .yellow-button {
+            background: linear-gradient(135deg, #ffca28, #ffb300);
+            color: #263238;
+        }
+
+        .green-button {
+            background: linear-gradient(135deg, #66bb6a, #43a047);
+        }
+
+        .red-button {
+            background: linear-gradient(135deg, #ef5350, #e53935);
+        }
+
+        .blue-button {
+            background: linear-gradient(135deg, #42a5f5, #1e88e5);
+        }
+
+        /* ---------------------- 3. Problem List ---------------------- */
         #problem-list-container {
-            max-height: 300px;
+            max-height: 240px;
             overflow-y: auto;
-            border: 3px solid #ccc;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 20px;
-            text-align: left;
+            border-radius: 16px;
+            border: 2px dashed #bbdefb;
+            padding: 10px 12px;
+            margin-top: 8px;
+            background: #f6fbff;
         }
+
         .problem-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px;
-            margin-bottom: 5px;
-            border-bottom: 1px dashed #ddd;
-            font-family: 'Bangers', cursive;
-        }
-        .problem-item:last-child {
-            border-bottom: none;
-        }
-        .problem-text {
-            flex-grow: 1;
-            font-size: 1.1em;
-            color: #333;
-        }
-        .delete-btn {
-            background-color: #f44336;
-            color: white;
-            border: 2px solid #000;
-            padding: 5px 10px;
-            font-size: 0.8em;
-            cursor: pointer;
-            box-shadow: 3px 3px 0px #000;
-            margin: 0;
-        }
-        .delete-btn:active {
-            box-shadow: 1px 1px 0px #000;
-            transform: translate(2px, 2px); 
+            padding: 6px 4px;
+            margin-bottom: 4px;
+            border-bottom: 1px dashed #e0e0e0;
+            font-size: 0.95rem;
         }
 
-        /* 퀴즈 필드 컨테이너 및 아바타 스타일은 이전 버전과 동일 */
+        .problem-text {
+            flex: 1;
+            margin-right: 8px;
+            color: #37474f;
+        }
+
+        .delete-btn {
+            background: #ef5350;
+            border-radius: 999px;
+            border: none;
+            color: #fff;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+        }
+
+        .delete-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.15);
+        }
+
+        /* ---------------------- 4. Quiz Field / Avatar ---------------------- */
         .quiz-field-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 20px;
+            padding-top: 12px;
         }
+
         #unanswered-area, #unanswered-area-spectator {
-            width: 95%; 
-            min-height: 80px;
-            background-color: #f39c12; 
-            border: 4px solid #000;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            padding: 10px;
+            width: 100%;
+            min-height: 70px;
+            background-color: #fff8e1;
+            border-radius: 16px;
+            padding: 10px 8px;
+            margin-bottom: 16px;
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 6px;
             align-content: center;
             justify-content: center;
-            box-shadow: 6px 6px 0px #000;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+            border: 2px solid #ffe082;
         }
-        .result-box { 
-            display: flex; 
-            justify-content: space-between; 
-            width: 95%; 
-            margin-top: 0; 
+
+        .unanswered-label {
+            font-family: 'Jua', 'Gamja Flower', sans-serif;
+            font-size: 0.95rem;
+            color: #6d4c41;
         }
-        .o-area, .x-area { 
-            flex-basis: 49%; 
-            padding: 15px; 
-            border: 6px solid #000; 
-            border-radius: 12px; 
-            min-height: 250px; 
-            box-shadow: 8px 8px 0px #000;
+
+        .result-box {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        .o-area, .x-area {
+            flex: 1;
+            padding: 10px 8px 12px;
+            border-radius: 16px;
+            min-height: 210px;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.08);
             display: flex;
             flex-wrap: wrap;
             align-content: flex-start;
-            gap: 10px; 
+            gap: 8px;
+            position: relative;
         }
-        .o-area { background-color: #4CAF50; } 
-        .x-area { background-color: #F44336; } 
-        .student-avatar { 
-            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
-            background: #ffffff; 
-            font-family: 'Bangers', cursive;
-            display: inline-block; 
-            margin: 5px; 
-            padding: 10px 15px; 
-            border-radius: 0%; 
-            font-size: 1.2em; 
-            font-weight: bold;
-            border: 3px solid #000;
-            box-shadow: 3px 3px 0px #000;
+
+        .o-area {
+            background: #e8f5e9;
+            border: 2px solid #a5d6a7;
+        }
+
+        .x-area {
+            background: #ffebee;
+            border: 2px solid #ef9a9a;
+        }
+
+        .count-badge {
+            font-family: 'Jua', 'Gamja Flower', sans-serif;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+            color: #37474f;
+            width: 100%;
+        }
+
+        .answer-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .student-avatar {
+            background: #ffffff;
+            font-family: 'Jua', 'Gamja Flower', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.95rem;
+            border: 2px solid #90caf9;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.1);
             white-space: nowrap;
-            cursor: help; 
+            cursor: default;
         }
-        .count-badge { font-family: 'Press Start 2P', cursive; font-size: 2em; }
+
+        .flying-avatar {
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+
+        /* ---------------------- 5. Student Info / Combo ---------------------- */
+        #student-lives {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        #life-rule-info {
+            font-size: 0.9rem;
+            color: #ff6f00;
+            margin-bottom: 4px;
+        }
+
+        .combo-display {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #ffeb3b;
+            font-size: 0.9rem;
+            color: #5d4037;
+            margin-top: 4px;
+        }
+
+        .quiz-state {
+            margin-top: 18px;
+        }
+
+        /* 결과 화면 */
+        #result-screen {
+            margin-top: 18px;
+            padding: 18px 12px;
+            border-radius: 20px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .correct-result {
+            background: linear-gradient(135deg, #66bb6a, #43a047);
+        }
+
+        .wrong-result {
+            background: linear-gradient(135deg, #ef5350, #e53935);
+        }
+
+        #result-emoji {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        #result-message {
+            font-size: 1.2rem;
+        }
+
+        /* 타이머 */
+        #timer-display,
+        #student-timer-display {
+            font-family: 'Jua', 'Gamja Flower', sans-serif;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #1565c0;
+        }
+
+        .answer-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        /* ---------------------- 6. Responsive ---------------------- */
+        @media (max-width: 768px) {
+            #app {
+                padding: 18px 14px 24px;
+            }
+
+            h2 {
+                font-size: 1.8rem;
+            }
+
+            h3 {
+                font-size: 1.5rem;
+            }
+
+            .result-box {
+                flex-direction: column;
+            }
+
+            .o-area, .x-area {
+                min-height: 160px;
+            }
+        }
     </style>
 </head>
 <body>
 
 <div id="app">
+    <!-- 초기 화면 -->
     <div id="initial-screen" class="centered">
-        <h2>🚀 Roblox 퀴즈 스타트! 🚀</h2>
+        <h2>🚀 Roblox OX 퀴즈 운동장 🚀</h2>
+        <p style="font-size: 1rem; margin-bottom: 16px;">
+            선생님이 문제를 내면, 우리 아바타가 O / X 구역으로 슝슝 이동해요!
+        </p>
         <button class="block-button yellow-button" onclick="showTeacherLogin()">👨‍🏫 선생님으로 접속</button>
-        <button class="block-button yellow-button" onclick="showStudentLogin()">👧👦 학생으로 접속</button>
-        <p style="font-family: sans-serif; font-size: 0.8em; color: gray;">
-            (Firebase를 통해 실시간 동기화됩니다.)
+        <button class="block-button blue-button" onclick="showStudentLogin()">👧👦 학생으로 접속</button>
+        <p style="font-size: 0.8rem; color: gray; margin-top: 12px;">
+            (Firebase Realtime Database로 실시간 동기화됩니다.)
         </p>
     </div>
-    
+
+    <!-- 선생님 로그인 -->
     <div id="teacher-login-screen" class="hidden centered">
-        <h3>👨‍🏫 선생님 비밀번호 입력</h3>
-        <input type="password" id="teacher-password" placeholder="비밀번호 입력">
-        <button class="block-button yellow-button" onclick="teacherLogin()">로그인</button>
+        <h3>👨‍🏫 선생님 비밀번호</h3>
+        <input type="password" id="teacher-password" placeholder="비밀번호를 입력하세요">
+        <div style="margin-top: 10px;">
+            <button class="block-button yellow-button" onclick="teacherLogin()">로그인</button>
+            <button class="block-button red-button" onclick="backToHome()">뒤로가기</button>
+        </div>
     </div>
 
+    <!-- 선생님 뷰 -->
     <div id="teacher-view" class="hidden">
-        <h3>👨‍🏫 선생님 관리 블록 (문제 #<span id="question-index">0</span>)</h3>
-        <button class="block-button red-button" onclick="resetGameData()" style="margin-bottom: 20px;">
-            🔄 데이터 초기화 (전체 삭제)
-        </button>
-        
-        <div id="teacher-preparation" class="centered">
-            
-            <label for="question-input">문제 입력 및 추가 (입력 칸 확장!):</label>
-            <textarea id="question-input" placeholder="💡 O/X 퀴즈 문제를 입력하세요"></textarea>
-            
-            <label for="correct-answer">정답 설정:</label>
-            <select id="correct-answer">
-                <option value="O">O</option>
-                <option value="X">X</option>
-            </select>
-            <label for="timer-select">제한 시간 (초):</label>
-            <input type="number" id="timer-select" value="10" min="5" max="30" placeholder="제한 시간 (초)" style="width: 200px; display: inline-block;">
-            
-            <button class="block-button green-button" onclick="addQuestionToPool()" style="margin-top: 5px;">
-                ➕ 문제 목록에 추가
+        <h3>👨‍🏫 선생님 관리 (문제 #<span id="question-index">0</span>)</h3>
+
+        <div style="text-align: right; margin-bottom: 10px;">
+            <button class="block-button red-button" onclick="resetGameData()">
+                🔄 데이터 초기화 (학생·기록·문제 전체 삭제)
             </button>
-            <hr>
-
-            <h4>📋 현재 셋팅된 문제 목록 (<span id="problem-count">0</span>개)</h4>
-            <div id="problem-list-container">
-                </div>
-            <hr>
-
-            <label for="combo-life-threshold">추가 목숨 획득 콤보 횟수:</label>
-            <input type="number" id="combo-life-threshold" value="5" min="2" max="10" placeholder="콤보 횟수 (기본 5)">
-
-            <button class="block-button yellow-button" onclick="startGameWithPool()" style="margin-top: 20px;">
-                ▶️ 셋팅된 문제로 게임 시작 및 학생들에게 배포!
-            </button>
-            
         </div>
 
+        <!-- 문제 준비 영역 -->
+        <div id="teacher-preparation">
+            <h4>🧩 문제 준비하기</h4>
+
+            <label for="question-input">문제 문장</label>
+            <textarea id="question-input" placeholder="예) 3×4는 12이다. (O/X)"></textarea>
+
+            <div style="display:flex; flex-wrap: wrap; gap: 10px; margin-top: 6px;">
+                <div>
+                    <label for="correct-answer">정답</label>
+                    <select id="correct-answer" style="max-width: 120px;">
+                        <option value="O">O</option>
+                        <option value="X">X</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="timer-select">제한 시간(초)</label>
+                    <input type="number" id="timer-select" value="10" min="5" max="60" style="max-width: 120px;">
+                </div>
+            </div>
+
+            <button class="block-button green-button" style="margin-top: 8px;" onclick="addQuestionToPool()">
+                ➕ 문제 목록에 추가
+            </button>
+
+            <hr style="margin: 18px 0;">
+
+            <h4>📋 현재 준비된 문제 (<span id="problem-count">0</span>개)</h4>
+            <div id="problem-list-container"></div>
+
+            <hr style="margin: 18px 0;">
+
+            <label for="combo-life-threshold">추가 목숨 획득 콤보</label>
+            <input type="number" id="combo-life-threshold" value="5" min="2" max="10"
+                   placeholder="예: 5 → 5문제 연속 정답 시 목숨 +1" style="max-width: 200px;">
+
+            <div class="centered" style="margin-top: 18px;">
+                <button class="block-button yellow-button" onclick="startGameWithPool()">
+                    ▶️ 준비된 문제로 게임 시작 & 학생들에게 배포
+                </button>
+            </div>
+        </div>
+
+        <!-- 라이브 퀴즈 영역 -->
         <div id="teacher-live-quiz" class="hidden">
             <h4>🚨 LIVE 퀴즈: <span id="current-question"></span></h4>
             <div id="timer-display">TIME: <span id="timer-value">10</span></div>
-            
+
             <div class="quiz-field-container">
-                <div id="unanswered-area" class="unanswered-area">
-                    <span style="font-family: 'Press Start 2P', cursive; font-size: 1.2em; color: #303030;">[운동장 밖] 아직 답변하지 않은 아바타가 여기에 있습니다.</span>
+                <div id="unanswered-area">
+                    <span class="unanswered-label">[운동장 밖] 아직 답을 고르지 않은 아바타</span>
                 </div>
                 <div class="result-box">
                     <div class="o-area">
@@ -272,15 +463,23 @@
                     </div>
                 </div>
             </div>
-            <button class="block-button red-button" onclick="endGame()">💣 게임 강제 종료 (최종 승리자 발표)</button>
+
+            <div class="centered" style="margin-top: 20px;">
+                <button class="block-button red-button" onclick="endGame()">
+                    💣 게임 강제 종료 (최종 승리자 발표)
+                </button>
+            </div>
         </div>
     </div>
 
+    <!-- 학생 로그인 -->
     <div id="student-login" class="hidden centered">
-        <h3>👤 아바타 설정 블록</h3>
-        <input type="text" id="student-nickname" placeholder="⭐ 닉네임 입력">
-        <label for="emoji-select">동물 이모지 선택:</label>
-        <select id="emoji-select">
+        <h3>👤 내 아바타 만들기</h3>
+        <label for="student-nickname">닉네임</label>
+        <input type="text" id="student-nickname" placeholder="예) 수학왕, 귀염뽀짝7번 등">
+
+        <label for="emoji-select">동물 이모지</label>
+        <select id="emoji-select" style="max-width: 220px;">
             <option value="🦁">🦁 사자</option>
             <option value="🐰">🐰 토끼</option>
             <option value="🐶">🐶 강아지</option>
@@ -298,35 +497,42 @@
             <option value="🦀">🦀 게</option>
             <option value="🐢">🐢 거북이</option>
         </select>
-        <button class="block-button yellow-button" onclick="loginStudent()">▶️ 퀴즈방 입장</button>
+
+        <div style="margin-top: 14px;">
+            <button class="block-button yellow-button" onclick="loginStudent()">▶️ 퀴즈방 입장</button>
+            <button class="block-button red-button" onclick="backToHome()">뒤로가기</button>
+        </div>
     </div>
 
+    <!-- 학생 화면 -->
     <div id="student-view" class="hidden">
         <h3 id="student-info" class="centered"></h3>
-        <p id="student-lives">❤️ 목숨: 3</p>
-        <div id="life-rule-info"></div>
-        <div id="combo-indicator" class="combo-display hidden">
-            🔥 <span id="combo-count">0</span> COMBO!
+        <div class="centered">
+            <p id="student-lives">❤️ 목숨: 3</p>
+            <div id="life-rule-info"></div>
+            <div id="combo-indicator" class="combo-display hidden">
+                🔥 <span id="combo-count">0</span> COMBO!
+            </div>
         </div>
 
         <div id="student-waiting" class="quiz-state centered">
-            <h4 class="red-button" style="background-color: #3498db; border-color: #2c3e50; display: inline-block;">
-                📢 선생님이 블록을 조립 중입니다. 잠시만 기다려주세요!
+            <h4 style="display:inline-block; padding:10px 16px; border-radius:20px; background:#e3f2fd; border:2px solid #90caf9;">
+                📢 선생님이 문제를 준비 중입니다. 잠시만 기다려주세요!
             </h4>
         </div>
 
         <div id="student-answering" class="quiz-state hidden centered">
-            <h4 id="question-text" style="font-size: 1.8em; border-bottom: 5px solid #f39c12; padding-bottom: 10px;"></h4>
+            <h4 id="question-text" style="font-size:1.5rem; border-bottom:3px solid #fbc02d; padding-bottom:6px;"></h4>
             <div id="student-timer-display">TIME: <span id="student-timer-value">10</span></div>
             <div class="answer-buttons">
-                <button class="o-btn green-button" onclick="submitAnswer('O')">O</button>
-                <button class="x-btn red-button" onclick="submitAnswer('X')">X</button>
+                <button class="block-button green-button" onclick="submitAnswer('O')">O</button>
+                <button class="block-button red-button" onclick="submitAnswer('X')">X</button>
             </div>
-            
-            <h4 style="margin-top: 30px; margin-bottom: 10px;">👀 실시간 답변 현황</h4>
+
+            <h4 style="margin-top: 24px; margin-bottom: 10px;">👀 실시간 답변 현황</h4>
             <div id="live-answer-spectator" class="quiz-field-container">
-                <div id="unanswered-area-spectator" class="unanswered-area" style="background-color: #bbdefb;">
-                     <span style="font-family: 'Press Start 2P', cursive; font-size: 1.2em; color: #303030;">[대기] 아직 답변하지 않은 아바타</span>
+                <div id="unanswered-area-spectator">
+                    <span class="unanswered-label">[대기] 아직 답을 고르지 않은 아바타</span>
                 </div>
                 <div class="result-box">
                     <div class="o-area">
@@ -343,7 +549,7 @@
 
         <div id="student-result" class="quiz-state hidden centered">
             <div id="result-screen">
-                <div class="result-emoji" id="result-emoji">✨</div>
+                <div id="result-emoji">✨</div>
                 <h4 id="result-message"></h4>
             </div>
         </div>
@@ -352,7 +558,7 @@
 
 <script>
     // ----------------------------------------------------------------------
-    // 📢 1. Firebase 설정 (필수 수정 영역) 📢
+    // 1. Firebase 설정 (필수 수정 영역)
     // ----------------------------------------------------------------------
     const firebaseConfig = {
   apiKey: "AIzaSyAoEYmlGb4tvWtYEQyBusIlyRDajD7-wtI",
@@ -364,25 +570,32 @@
   appId: "1:509722567204:web:728f6e3bd0851909d36eb1"
 };
 
-    // Firebase 초기화
     const app = firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const gameRef = database.ref('quizGame');
     const studentRef = database.ref('quizGame/students');
     const stateRef = database.ref('quizGame/state');
-    const problemPoolRef = database.ref('quizGame/problemPool'); // 문제 목록 관리 DB 참조
-    
+    const problemPoolRef = database.ref('quizGame/problemPool');
+
     // ----------------------------------------------------------------------
-    // 2. 전역 변수 및 상수
+    // 2. 전역 변수
     // ----------------------------------------------------------------------
     const TEACHER_PASSWORD = 'teacher1234';
-    let currentUser = null; 
-    let currentGameState = {}; 
-    let studentList = []; 
-    let problemPool = []; // 문제 목록 배열 (로컬)
+    let currentUser = null;
+    let currentGameState = {};
+    let studentList = [];
+    let problemPool = [];
     let timerInterval = null;
-    
-    // (Helper: Sound)
+
+    // 학생 결과 계산용
+    let lastUserLives = null;
+    let lastUserCombo = null;
+    let lastResultQuestionIndex = 0;
+
+    // 아바타 이동 애니메이션용
+    const lastZoneMap = {}; // { studentId: 'out' | 'O' | 'X' }
+
+    // 사운드
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     function playSound(frequency, duration) {
         const oscillator = audioContext.createOscillator();
@@ -396,7 +609,7 @@
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + duration);
     }
-    
+
     // ----------------------------------------------------------------------
     // 3. View Management
     // ----------------------------------------------------------------------
@@ -408,18 +621,23 @@
         document.getElementById('student-view').classList.add('hidden');
     }
 
+    function backToHome() {
+        hideAll();
+        document.getElementById('initial-screen').classList.remove('hidden');
+    }
+
     function showTeacherLogin() {
         hideAll();
         document.getElementById('teacher-login-screen').classList.remove('hidden');
     }
-    
+
     function teacherLogin() {
-        const password = document.getElementById('teacher-password').value;
+        const password = document.getElementById('teacher-password').value.trim();
         if (password === TEACHER_PASSWORD) {
+            document.getElementById('teacher-password').value = '';
             showTeacherView();
         } else {
             alert('비밀번호가 틀렸습니다.');
-            document.getElementById('teacher-password').value = '';
         }
     }
 
@@ -427,7 +645,6 @@
         hideAll();
         document.getElementById('teacher-view').classList.remove('hidden');
     }
-    // ... (나머지 View Management 함수는 동일)
 
     function showStudentLogin() {
         hideAll();
@@ -437,117 +654,123 @@
     function showStudentView() {
         hideAll();
         document.getElementById('student-view').classList.remove('hidden');
-        if(currentGameState.comboThreshold) {
-             updateLifeRuleInfo(currentGameState.comboThreshold);
+        if (currentGameState.comboThreshold) {
+            updateLifeRuleInfo(currentGameState.comboThreshold);
         }
     }
-    
+
     function updateLifeRuleInfo(threshold) {
         const infoElement = document.getElementById('life-rule-info');
+        if (!infoElement) return;
         if (threshold > 0) {
-            infoElement.innerHTML = `⚠️ 규칙: **${threshold}연속 정답** 시 ❤️ 목숨 +1 보너스!`;
+            infoElement.innerHTML = `⚠️ 규칙: <b>${threshold}문제 연속 정답</b> 시 ❤️ 목숨이 1개 늘어나요!`;
             infoElement.classList.remove('hidden');
         } else {
             infoElement.classList.add('hidden');
         }
     }
-    
+
     // ----------------------------------------------------------------------
-    // 4. Firebase Data Listeners (실시간 동기화)
+    // 4. Firebase Listeners
     // ----------------------------------------------------------------------
-    
     stateRef.on('value', (snapshot) => {
-        currentGameState = snapshot.val() || { questionIndex: 0, isActive: false, comboThreshold: 5, showResult: false };
-        
+        currentGameState = snapshot.val() || {
+            questionIndex: 0,
+            isActive: false,
+            comboThreshold: 5,
+            showResult: false,
+            isGameStarted: false
+        };
+
         updateLifeRuleInfo(currentGameState.comboThreshold);
 
+        // 선생님 화면
         if (!document.getElementById('teacher-view').classList.contains('hidden')) {
             updateTeacherView();
         }
 
+        // 학생 화면
         if (currentUser && !document.getElementById('student-view').classList.contains('hidden')) {
-             updateStudentStateFromDB();
+            updateStudentStateFromDB();
         }
     });
-    
+
     studentRef.on('value', (snapshot) => {
         const students = snapshot.val();
         studentList = students ? Object.values(students) : [];
-        
+
         updateQuizAreaViews();
-        
+
         if (currentUser) {
+            const prevLives = currentUser.lives;
+            const prevCombo = currentUser.combo;
             const updatedUser = studentList.find(s => s.id === currentUser.id);
             if (updatedUser) {
+                lastUserLives = prevLives;
+                lastUserCombo = prevCombo;
                 currentUser = updatedUser;
-                document.getElementById('student-lives').innerText = `❤️ 목숨: ${currentUser.lives}`;
+                const livesEl = document.getElementById('student-lives');
+                if (livesEl) {
+                    livesEl.innerText = `❤️ 목숨: ${currentUser.lives}`;
+                }
                 updateComboDisplay();
             }
         }
     });
 
-    // **[NEW LISTENER] 문제 풀 변화 감지**
     problemPoolRef.on('value', (snapshot) => {
         const problems = snapshot.val();
-        problemPool = problems ? Object.entries(problems).map(([key, value]) => ({ id: key, ...value })) : [];
+        problemPool = problems
+            ? Object.entries(problems).map(([key, value]) => ({ id: key, ...value }))
+            : [];
         updateProblemListUI();
     });
 
-
     // ----------------------------------------------------------------------
-    // 5. Problem Management (선생님 문제 셋팅 로직)
+    // 5. Problem Management (선생님)
     // ----------------------------------------------------------------------
-
-    // **[NEW] 문제 목록에 문제 추가**
     function addQuestionToPool() {
         const text = document.getElementById('question-input').value.trim();
         const timer = parseInt(document.getElementById('timer-select').value);
         const answer = document.getElementById('correct-answer').value;
 
-        if (!text || timer < 5) {
-            alert('문제 내용과 유효한 제한 시간(5초 이상)을 입력해야 합니다.');
+        if (!text || isNaN(timer) || timer < 5) {
+            alert('문제 문장과 5초 이상인 제한 시간을 입력해주세요.');
             return;
         }
 
-        const newProblem = {
-            text: text,
-            timer: timer,
-            answer: answer
-        };
+        const newProblem = { text, timer, answer };
 
-        // Firebase에 새로운 문제 추가 (자동 생성된 키 사용)
         problemPoolRef.push(newProblem)
             .then(() => {
-                document.getElementById('question-input').value = ''; // 입력 필드 초기화
-                alert('✅ 문제가 성공적으로 문제 목록에 추가되었습니다.');
+                document.getElementById('question-input').value = '';
+                alert('✅ 문제가 문제 목록에 추가되었습니다.');
             })
             .catch(error => {
-                alert('❌ 문제 추가 중 오류 발생: ' + error.message);
+                alert('❌ 문제 추가 중 오류: ' + error.message);
             });
     }
 
-    // **[NEW] 문제 목록 UI 업데이트**
     function updateProblemListUI() {
         const container = document.getElementById('problem-list-container');
         const countElement = document.getElementById('problem-count');
-        
+
         container.innerHTML = '';
         countElement.innerText = problemPool.length;
 
         if (problemPool.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: gray; font-family: \'Bangers\', cursive;">아직 셋팅된 문제가 없습니다.</p>';
+            container.innerHTML = '<p style="text-align:center; color:gray;">아직 준비된 문제가 없습니다.</p>';
             return;
         }
 
         problemPool.forEach((problem, index) => {
             const item = document.createElement('div');
             item.className = 'problem-item';
-            
-            const textContent = `${index + 1}. [${problem.answer}] (${problem.timer}초) ${problem.text.substring(0, 50)}${problem.text.length > 50 ? '...' : ''}`;
-            
+
             const textDiv = document.createElement('div');
             textDiv.className = 'problem-text';
-            textDiv.innerText = textContent;
+            const displayText = `${index + 1}. [${problem.answer}] (${problem.timer}초) ${problem.text}`;
+            textDiv.innerText = displayText.length > 80 ? displayText.substring(0, 80) + '…' : displayText;
 
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-btn';
@@ -560,187 +783,170 @@
         });
     }
 
-    // **[NEW] 문제 목록에서 삭제**
     function deleteQuestionFromPool(problemId) {
-        if (confirm('정말로 이 문제를 삭제하시겠습니까?')) {
-            database.ref(`quizGame/problemPool/${problemId}`).remove()
-                .then(() => {
-                    alert('✅ 문제가 삭제되었습니다.');
-                })
-                .catch(error => {
-                    alert('❌ 문제 삭제 중 오류 발생: ' + error.message);
-                });
-        }
+        if (!confirm('이 문제를 삭제할까요?')) return;
+        database.ref(`quizGame/problemPool/${problemId}`).remove()
+            .then(() => alert('✅ 문제가 삭제되었습니다.'))
+            .catch(error => alert('❌ 문제 삭제 중 오류: ' + error.message));
     }
 
-    // **[NEW] 셋팅된 문제로 게임 시작 및 다음 문제 출제**
     async function startGameWithPool() {
         if (problemPool.length === 0) {
-            alert('🚨 최소 1개 이상의 문제를 셋팅해야 게임을 시작할 수 있습니다.');
+            alert('🚨 최소 1개 이상의 문제를 준비해야 합니다.');
             return;
         }
 
-        // 1. 이미 진행 중인 퀴즈가 있다면 결과 처리
+        // 이미 진행 중인 퀴즈가 있다면 결과 처리
         if (currentGameState.isActive && timerInterval) {
             clearInterval(timerInterval);
-            await processResults(true); // 강제 종료로 처리
+            await processResults(true);
         }
-        
-        // 2. 콤보 설정값 가져오기
+
         const comboThreshold = parseInt(document.getElementById('combo-life-threshold').value) || 5;
 
-        // 3. 게임 상태 초기화 및 첫 문제 설정 (index는 0부터 시작)
         const firstProblem = problemPool[0];
-        const newQuestionIndex = 1;
-        
         const newGameState = {
-            questionIndex: newQuestionIndex,
-            currentProblemKey: problemPool[0].id, // 현재 문제의 Key 저장
-            currentQuestion: { text: firstProblem.text, timer: firstProblem.timer, answer: firstProblem.answer },
+            questionIndex: 1,
+            currentProblemKey: firstProblem.id,
+            currentQuestion: {
+                text: firstProblem.text,
+                timer: firstProblem.timer,
+                answer: firstProblem.answer
+            },
             isActive: true,
             showResult: false,
             answerTime: Date.now(),
             comboThreshold: comboThreshold,
-            isGameStarted: true // 게임이 시작되었음을 표시
+            isGameStarted: true
         };
 
-        // 4. 학생들의 답변 상태 초기화 (answered 필드만)
+        // 학생 answered 초기화
         const studentUpdates = {};
         studentList.forEach(student => {
             if (student.lives > 0) {
-                 studentUpdates[student.id + '/answered'] = null;
+                studentUpdates[student.id + '/answered'] = null;
             }
         });
         await studentRef.update(studentUpdates);
 
-        // 5. Firebase에 게임 상태 업데이트
         await stateRef.set(newGameState);
-        
-        alert(`✅ 게임이 시작되었습니다! 총 ${problemPool.length}개의 문제 중 1번 문제가 배포됩니다.`);
+        alert(`✅ 게임 시작! 총 ${problemPool.length}문제 중 1번 문제를 배포했습니다.`);
     }
 
-
-    // **[MODIFIED] 다음 문제로 진행**
     async function proceedToNextQuestion() {
         const nextIndex = currentGameState.questionIndex + 1;
-
         if (nextIndex > problemPool.length) {
-            // 모든 문제 소진 -> 최종 결과 처리
-            endGame(true); // 모든 문제 완료 플래그
+            endGame(true);
             return;
         }
-        
-        const nextProblem = problemPool[nextIndex - 1]; // 배열은 0부터 시작
 
-        // 학생들의 답변 상태 초기화
+        const nextProblem = problemPool[nextIndex - 1];
+
         const studentUpdates = {};
         studentList.forEach(student => {
             if (student.lives > 0) {
-                 studentUpdates[student.id + '/answered'] = null;
+                studentUpdates[student.id + '/answered'] = null;
             }
         });
         await studentRef.update(studentUpdates);
 
-        // 새로운 게임 상태 업데이트
         await stateRef.update({
             questionIndex: nextIndex,
             currentProblemKey: nextProblem.id,
-            currentQuestion: { text: nextProblem.text, timer: nextProblem.timer, answer: nextProblem.answer },
+            currentQuestion: {
+                text: nextProblem.text,
+                timer: nextProblem.timer,
+                answer: nextProblem.answer
+            },
             isActive: true,
             showResult: false,
-            answerTime: Date.now(),
+            answerTime: Date.now()
         });
+
+        lastResultQuestionIndex = 0; // 다음 문제 결과 새로 보기 위해 초기화
     }
 
     // ----------------------------------------------------------------------
-    // 6. Teacher Logic (View Update)
+    // 6. Teacher View Logic
     // ----------------------------------------------------------------------
-    
-    // [MODIFIED] 선생님 뷰 업데이트
     function updateTeacherView() {
         const state = currentGameState;
-        document.getElementById('question-index').innerText = state.questionIndex;
-        
-        // 게임이 시작되었고 문제 풀이 중인 경우
-        if (state.isGameStarted && state.isActive) {
-            document.getElementById('teacher-preparation').classList.add('hidden');
-            document.getElementById('teacher-live-quiz').classList.remove('hidden');
-            document.getElementById('current-question').innerText = `[#${state.questionIndex}/${problemPool.length}] ${state.currentQuestion.text}`;
+        const questionIndexEl = document.getElementById('question-index');
+        if (questionIndexEl) {
+            questionIndexEl.innerText = state.questionIndex || 0;
+        }
 
-            const remainingTime = Math.max(0, state.currentQuestion.timer - Math.floor((Date.now() - state.answerTime) / 1000));
-            startTimer(remainingTime, 'teacher');
-            
-        // 게임이 시작되었으나 결과 표시 또는 다음 문제 대기 중인 경우
+        const prep = document.getElementById('teacher-preparation');
+        const live = document.getElementById('teacher-live-quiz');
+
+        if (state.isGameStarted && state.isActive) {
+            prep.classList.add('hidden');
+            live.classList.remove('hidden');
+
+            document.getElementById('current-question').innerText =
+                `[#${state.questionIndex}/${problemPool.length}] ${state.currentQuestion.text}`;
+
+            const elapsedSec = Math.floor((Date.now() - state.answerTime) / 1000);
+            const remaining = Math.max(0, state.currentQuestion.timer - elapsedSec);
+            startTimer(remaining, 'teacher');
+
         } else if (state.isGameStarted && !state.isActive && state.questionIndex <= problemPool.length) {
-            document.getElementById('teacher-preparation').classList.add('hidden');
-            document.getElementById('teacher-live-quiz').classList.remove('hidden');
-            
-            // 결과 표시가 끝났다면, 다음 문제 버튼을 보여줌
+            prep.classList.add('hidden');
+            live.classList.remove('hidden');
+
+            // 다음 문제로 넘어가기 대기 상태
             if (!state.showResult) {
-                document.getElementById('current-question').innerHTML = 
-                    `<span style="color: #f1c40f; text-shadow: 2px 2px 0 #000;">다음 문제 준비 완료!</span><br>` + 
+                document.getElementById('current-question').innerHTML =
+                    `<span style="color:#fbc02d;">다음 문제 준비 완료!</span><br>` +
                     `<button class="block-button green-button" onclick="proceedToNextQuestion()">➡️ 다음 문제 출제 (#${state.questionIndex + 1})</button>`;
             }
-        
-        // 게임 시작 전이거나 최종 종료된 경우
+
         } else {
-            document.getElementById('teacher-preparation').classList.remove('hidden');
-            document.getElementById('teacher-live-quiz').classList.add('hidden');
+            prep.classList.remove('hidden');
+            live.classList.add('hidden');
         }
     }
-
 
     function resetGameData() {
-        const confirmReset = confirm('🚨 경고: 현재 저장된 모든 학생 정보, 게임 기록 및 문제 목록을 삭제하시겠습니까?');
-        if (confirmReset) {
-            gameRef.remove()
-                .then(() => {
-                    alert('✅ 게임 데이터가 성공적으로 초기화되었습니다. 페이지를 새로고침합니다.');
-                    location.reload(); 
-                })
-                .catch(error => {
-                    alert('❌ 데이터 초기화 중 오류 발생: ' + error.message);
-                });
-        }
+        const confirmReset = confirm('🚨 주의: 모든 학생 정보, 게임 기록, 문제 목록이 삭제됩니다. 진행하시겠습니까?');
+        if (!confirmReset) return;
+        gameRef.remove()
+            .then(() => {
+                alert('✅ 게임 데이터가 모두 초기화되었습니다. 페이지를 새로고침합니다.');
+                location.reload();
+            })
+            .catch(error => {
+                alert('❌ 데이터 초기화 중 오류: ' + error.message);
+            });
     }
 
     // ----------------------------------------------------------------------
-    // 7. Core Game Logic
+    // 7. Core Game Logic (결과 처리 / 종료)
     // ----------------------------------------------------------------------
-
     async function processResults(isForced = false) {
         if (currentGameState.showResult || !currentGameState.isActive) return;
-        
+
         clearInterval(timerInterval);
-        
+
         const correctAnswer = currentGameState.currentQuestion.answer;
         const comboThreshold = currentGameState.comboThreshold;
-        
-        const studentUpdates = {};
-        let isCurrentUserCorrect = false;
-        let isLifeGained = false;
 
+        const studentUpdates = {};
         studentList.forEach(student => {
-            if (student.lives > 0) { 
-                if (student.answered === correctAnswer && !isForced) {
+            if (student.lives > 0) {
+                if (!isForced && student.answered === correctAnswer) {
                     student.combo = (student.combo || 0) + 1;
-                    
-                    if (comboThreshold > 0 && (student.combo % comboThreshold === 0)) {
-                         student.lives++; 
-                         if (student.id === currentUser?.id) isLifeGained = true;
+                    if (comboThreshold > 0 && student.combo % comboThreshold === 0) {
+                        student.lives++;
                     }
-                    
-                    if (student.id === currentUser?.id) isCurrentUserCorrect = true;
-                } else {
+                } else if (!isForced) {
                     student.lives--;
+                    if (student.lives < 0) student.lives = 0;
                     student.combo = 0;
                 }
-                
-                studentUpdates[student.id] = {
-                    lives: student.lives,
-                    combo: student.combo,
-                    answered: student.answered 
-                };
+                studentUpdates[`${student.id}/lives`] = student.lives;
+                studentUpdates[`${student.id}/combo`] = student.combo || 0;
+                studentUpdates[`${student.id}/answered`] = student.answered || null;
             }
         });
 
@@ -748,87 +954,347 @@
 
         await stateRef.update({
             isActive: false,
-            showResult: true,
-            isCurrentUserCorrect: isCurrentUserCorrect, 
-            isLifeGained: isLifeGained 
+            showResult: true
         });
-        
-        // 결과 표시 후 다음 문제로 자동 진행 (선생님 뷰에서만 실행)
+
+        // 선생님 화면에서 잠시 결과를 보여준 뒤, 다음 문제 준비 상태로
         if (!document.getElementById('teacher-view').classList.contains('hidden')) {
             setTimeout(() => {
-                stateRef.update({ showResult: false }); 
-                // 결과 화면이 끝난 후, 다음 문제로 바로 넘어가지 않고 버튼 클릭을 대기
+                stateRef.update({ showResult: false });
             }, 3000);
         }
     }
-    
-    // (나머지 로직은 문제 관리와 무관하게 동일)
 
-    function showResultScreen(isCorrect, isLifeGained, question) { 
-        // ... (결과 화면 표시 로직 동일)
+    function showResultScreen(isCorrect, isLifeGained, question) {
         const resultScreen = document.getElementById('result-screen');
         const resultEmoji = document.getElementById('result-emoji');
         const resultMessage = document.getElementById('result-message');
-        
+
         document.querySelectorAll('.quiz-state').forEach(el => el.classList.add('hidden'));
         document.getElementById('student-result').classList.remove('hidden');
 
         if (isCorrect) {
             resultScreen.className = 'correct-result';
             resultEmoji.textContent = '🎉';
-            let msg = `<span style="color: #fff; font-size: 2em;">정답!</span>`;
-            
+            let msg = `<span style="font-size:1.4rem;">정답이에요! 너무 잘했어요 👏</span>`;
             if (isLifeGained) {
-                 msg += `<br><span style="color: #ffea00; font-size: 1.5em;">⭐목숨 +1 보너스! (${currentGameState.comboThreshold}콤보)</span>`;
+                msg += `<br><span style="font-size:1.1rem;">⭐ 콤보로 목숨이 1개 늘어났어요!</span>`;
             }
             resultMessage.innerHTML = msg;
-            playSound(523, 0.2);
-            playSound(659, 0.2);
+            playSound(523, 0.15);
+            playSound(659, 0.15);
         } else {
             resultScreen.className = 'wrong-result';
             resultEmoji.textContent = '💥';
-            resultMessage.innerHTML = `<span style="color: #fff; font-size: 2em;">틀렸어요! 정답은 [${question.answer}]</span>`;
-            playSound(200, 0.3);
+            resultMessage.innerHTML =
+                `<span style="font-size:1.4rem;">아쉬워요! 정답은 [${question.answer}] 였어요.</span>`;
+            playSound(200, 0.25);
         }
     }
 
     function endGame(isAllCompleted = false) {
-        // 모든 문제 소진으로 인한 종료가 아니라면, 현재 진행 중인 문제 결과 처리
         if (!isAllCompleted && currentGameState.isActive) {
-             processResults(true); 
+            processResults(true);
         }
-        
-        let survivingStudents = studentList.filter(s => s.lives > 0);
-        
-        let rankingMessage = '';
 
-        if (survivingStudents.length > 0) {
-            survivingStudents.sort((a, b) => b.combo - a.combo);
-            
-            const topStudent = survivingStudents[0];
-            let winnerMessage = `🏆 MVP (최고 콤보): ${topStudent.emoji} ${topStudent.nickname} (${topStudent.combo} 콤보)`;
-            
-            rankingMessage = survivingStudents.slice(0, 5).map((s, i) => 
-                `${i+1}위: ${s.emoji} ${s.nickname} (최대 콤보: ${s.combo})`
+        const alive = studentList.filter(s => s.lives > 0);
+        if (alive.length > 0) {
+            alive.sort((a, b) => (b.combo || 0) - (a.combo || 0));
+            const top = alive[0];
+            const rankingMessage = alive.slice(0, 5).map((s, i) =>
+                `${i + 1}위: ${s.emoji} ${s.nickname} (최대 콤보: ${s.combo || 0})`
             ).join('\n');
 
-            alert(`🎉 게임 종료! (총 ${problemPool.length}문제 완료)\n\n${winnerMessage}\n\n📊 최종 순위:\n${rankingMessage}`);
+            alert(`🎉 게임 종료! (총 ${problemPool.length}문제 완료)\n\n🏆 MVP: ${top.emoji} ${top.nickname} (${top.combo || 0}콤보)\n\n📊 최종 순위\n${rankingMessage}`);
         } else {
-            alert(`😢 아쉽지만 생존자가 없습니다. 게임 종료!`);
+            alert('😢 아쉽지만 생존자가 없습니다. 게임을 종료합니다.');
         }
 
-        // 최종 종료 상태로 변경
-        stateRef.update({ isActive: false, showResult: false, isGameStarted: false, questionIndex: 0 });
+        stateRef.update({
+            isActive: false,
+            showResult: false,
+            isGameStarted: false,
+            questionIndex: 0
+        });
     }
-    
-    // ... (Student Logic 및 Visualization 함수는 이전 버전과 동일)
-    async function loginStudent() { /* ... */ }
-    function updateStudentStateFromDB() { /* ... */ }
-    function submitAnswer(answer) { /* ... */ }
-    function updateComboDisplay() { /* ... */ }
-    function updateQuizAreaViews() { /* ... */ }
-    function updateQuizArea(container, students) { /* ... */ }
-    function startTimer(seconds, role) { /* ... */ }
+
+    // ----------------------------------------------------------------------
+    // 8. Student Logic
+    // ----------------------------------------------------------------------
+    async function loginStudent() {
+        const nicknameInput = document.getElementById('student-nickname');
+        const emojiSelect = document.getElementById('emoji-select');
+
+        const nickname = nicknameInput.value.trim();
+        const emoji = emojiSelect.value;
+
+        if (!nickname) {
+            alert('닉네임을 입력해주세요.');
+            return;
+        }
+
+        const newRef = studentRef.push();
+        const newId = newRef.key;
+
+        const studentData = {
+            id: newId,
+            nickname: nickname,
+            emoji: emoji,
+            lives: 3,
+            combo: 0,
+            answered: null
+        };
+
+        await newRef.set(studentData);
+        currentUser = studentData;
+        lastUserLives = 3;
+        lastUserCombo = 0;
+
+        const infoEl = document.getElementById('student-info');
+        if (infoEl) {
+            infoEl.innerText = `${emoji} ${nickname} 님, 환영합니다!`;
+        }
+        document.getElementById('student-lives').innerText = '❤️ 목숨: 3';
+
+        showStudentView();
+    }
+
+    function updateStudentStateFromDB() {
+        if (!currentUser) return;
+        const state = currentGameState;
+
+        const waiting = document.getElementById('student-waiting');
+        const answering = document.getElementById('student-answering');
+        const result = document.getElementById('student-result');
+
+        if (!state.isGameStarted) {
+            waiting.classList.remove('hidden');
+            answering.classList.add('hidden');
+            result.classList.add('hidden');
+            return;
+        }
+
+        // 문제 푸는 시간
+        if (state.isActive) {
+            waiting.classList.add('hidden');
+            result.classList.add('hidden');
+            answering.classList.remove('hidden');
+
+            const qText = document.getElementById('question-text');
+            if (qText && state.currentQuestion) {
+                qText.innerText = state.currentQuestion.text;
+            }
+
+            const elapsedSec = Math.floor((Date.now() - state.answerTime) / 1000);
+            const remaining = Math.max(0, state.currentQuestion.timer - elapsedSec);
+            startTimer(remaining, 'student');
+
+        } else if (state.showResult && state.questionIndex !== lastResultQuestionIndex) {
+            // 결과 화면 (각 문제당 1회만)
+            answering.classList.add('hidden');
+            waiting.classList.add('hidden');
+            result.classList.remove('hidden');
+
+            const isCorrect = (currentUser.answered === state.currentQuestion.answer && currentUser.lives > 0);
+            const isLifeGained = (lastUserLives != null && currentUser.lives > lastUserLives);
+
+            showResultScreen(isCorrect, isLifeGained, state.currentQuestion);
+            lastResultQuestionIndex = state.questionIndex;
+
+        } else {
+            // 다음 문제 대기
+            waiting.classList.remove('hidden');
+            answering.classList.add('hidden');
+            result.classList.add('hidden');
+        }
+    }
+
+    function submitAnswer(answer) {
+        if (!currentUser) return;
+        if (!currentGameState.isActive || !currentGameState.isGameStarted) {
+            alert('지금은 답을 제출할 수 있는 시간이 아닙니다.');
+            return;
+        }
+        if (currentUser.lives <= 0) {
+            alert('이미 탈락했어요. 이제는 관전만 가능합니다.');
+            return;
+        }
+
+        studentRef.child(currentUser.id).update({ answered: answer })
+            .then(() => {
+                playSound(440, 0.1);
+            })
+            .catch(err => console.error(err));
+    }
+
+    function updateComboDisplay() {
+        const el = document.getElementById('combo-indicator');
+        const countEl = document.getElementById('combo-count');
+        if (!currentUser || !currentUser.combo || currentUser.combo <= 1) {
+            el.classList.add('hidden');
+            return;
+        }
+        countEl.innerText = currentUser.combo;
+        el.classList.remove('hidden');
+    }
+
+    // ----------------------------------------------------------------------
+    // 9. Avatar Animation & Quiz Area (운동장 밖 → O/X 슝슝)
+    // ----------------------------------------------------------------------
+    function createOrGetAvatarElement(student) {
+        let avatar = document.querySelector(`.student-avatar[data-student-id="${student.id}"]`);
+        if (!avatar) {
+            avatar = document.createElement('div');
+            avatar.className = 'student-avatar';
+            avatar.dataset.studentId = student.id;
+        }
+        avatar.textContent = `${student.emoji} ${student.nickname}`;
+        return avatar;
+    }
+
+    function moveAvatarWithAnimation(student, targetContainer, newZone) {
+        const avatar = createOrGetAvatarElement(student);
+        const currentParent = avatar.parentElement;
+
+        // 첫 렌더링이거나 동일 존이면 바로 붙이기
+        if (!currentParent || lastZoneMap[student.id] === undefined || lastZoneMap[student.id] === newZone) {
+            targetContainer.appendChild(avatar);
+            lastZoneMap[student.id] = newZone;
+            return;
+        }
+
+        // 현재 위치
+        const startRect = avatar.getBoundingClientRect();
+        const startX = startRect.left + startRect.width / 2;
+        const startY = startRect.top + startRect.height / 2;
+
+        // 목적지 위치(대략적인 중앙)
+        const targetRect = targetContainer.getBoundingClientRect();
+        const endX = targetRect.left + targetRect.width / 2;
+        const endY = targetRect.top + 40;
+
+        // 날아가는 복제본
+        const flying = avatar.cloneNode(true);
+        flying.style.position = 'fixed';
+        flying.style.left = (startX - startRect.width / 2) + 'px';
+        flying.style.top = (startY - startRect.height / 2) + 'px';
+        flying.style.margin = '0';
+        flying.style.zIndex = 9999;
+        flying.style.pointerEvents = 'none';
+        flying.style.transition = 'transform 0.6s cubic-bezier(0.68,-0.55,0.27,1.55)';
+        flying.classList.add('flying-avatar');
+        document.body.appendChild(flying);
+
+        avatar.style.visibility = 'hidden';
+
+        const deltaX = endX - startX;
+        const deltaY = endY - startY;
+
+        requestAnimationFrame(() => {
+            flying.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(1.1)`;
+        });
+
+        flying.addEventListener('transitionend', () => {
+            targetContainer.appendChild(avatar);
+            avatar.style.visibility = 'visible';
+            document.body.removeChild(flying);
+        });
+
+        lastZoneMap[student.id] = newZone;
+    }
+
+    function updateQuizAreaViews() {
+        // 선생님 화면 컨테이너
+        const unanswered = document.getElementById('unanswered-area');
+        const oArea = document.getElementById('o-answers');
+        const xArea = document.getElementById('x-answers');
+
+        // 학생 spectator 화면 컨테이너
+        const unansweredSpec = document.getElementById('unanswered-area-spectator');
+        const oSpec = document.getElementById('o-answers-spectator');
+        const xSpec = document.getElementById('x-answers-spectator');
+
+        if (!unanswered || !oArea || !xArea || !unansweredSpec || !oSpec || !xSpec) return;
+
+        // spectator 쪽은 새로 그리기
+        unansweredSpec.innerHTML = '<span class="unanswered-label">[대기] 아직 답을 고르지 않은 아바타</span>';
+        oSpec.innerHTML = '';
+        xSpec.innerHTML = '';
+
+        let oCount = 0;
+        let xCount = 0;
+
+        studentList.forEach(student => {
+            if (student.lives <= 0) return;
+
+            let zone = 'out';
+            if (student.answered === 'O') {
+                zone = 'O';
+                oCount++;
+            } else if (student.answered === 'X') {
+                zone = 'X';
+                xCount++;
+            }
+
+            // 1) 선생님 화면: 애니메이션 이동
+            let targetTeacher = unanswered;
+            if (zone === 'O') targetTeacher = oArea;
+            else if (zone === 'X') targetTeacher = xArea;
+            moveAvatarWithAnimation(student, targetTeacher, zone);
+
+            // 2) 학생 spectator 화면: 즉시 렌더링
+            const specAvatar = document.createElement('div');
+            specAvatar.className = 'student-avatar';
+            specAvatar.textContent = `${student.emoji} ${student.nickname}`;
+            let targetSpec = unansweredSpec;
+            if (zone === 'O') targetSpec = oSpec;
+            else if (zone === 'X') targetSpec = xSpec;
+            targetSpec.appendChild(specAvatar);
+        });
+
+        const oCountEl = document.getElementById('o-count');
+        const xCountEl = document.getElementById('x-count');
+        if (oCountEl) oCountEl.innerText = oCount;
+        if (xCountEl) xCountEl.innerText = xCount;
+        document.querySelectorAll('.o-count-spectator').forEach(el => el.innerText = oCount);
+        document.querySelectorAll('.x-count-spectator').forEach(el => el.innerText = xCount);
+    }
+
+    // ----------------------------------------------------------------------
+    // 10. Timer
+    // ----------------------------------------------------------------------
+    function startTimer(seconds, role) {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+        let remaining = seconds;
+
+        function updateDisplay() {
+            if (role === 'teacher') {
+                const tv = document.getElementById('timer-value');
+                if (tv) tv.innerText = remaining;
+            } else if (role === 'student') {
+                const tv = document.getElementById('student-timer-value');
+                if (tv) tv.innerText = remaining;
+            }
+        }
+
+        updateDisplay();
+
+        timerInterval = setInterval(() => {
+            remaining--;
+            if (remaining < 0) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                if (role === 'teacher' && currentGameState.isActive) {
+                    // 시간 종료 → 결과 처리
+                    processResults(false);
+                }
+                return;
+            }
+            updateDisplay();
+        }, 1000);
+    }
 </script>
 
 </body>
