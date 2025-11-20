@@ -101,7 +101,13 @@
         }
 
         textarea#question-input {
-            min-height: 90px;
+            min-height: 70px;
+            resize: vertical;
+            margin: 4px 0 8px;
+        }
+
+        textarea#explanation-input {
+            min-height: 60px;
             resize: vertical;
             margin: 4px 0 8px;
         }
@@ -349,7 +355,101 @@
             margin-top: 12px;
         }
 
-        /* ---------------------- 6. Responsive ---------------------- */
+        /* ---------------------- 6. Teacher extra panels ---------------------- */
+        #student-list-container {
+            max-height: 200px;
+            overflow-y: auto;
+            border-radius: 16px;
+            border: 2px dashed #c5e1a5;
+            padding: 10px 12px;
+            margin-top: 8px;
+            background: #f9fff3;
+        }
+
+        .student-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 4px;
+            margin-bottom: 4px;
+            border-bottom: 1px dashed #e0e0e0;
+            font-size: 0.95rem;
+        }
+
+        .student-row span {
+            color: #37474f;
+        }
+
+        /* ---------------------- 7. Final ranking screen ---------------------- */
+        #final-result-view {
+            text-align: center;
+        }
+
+        #final-ranking-container {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 24px 20px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, #fff8e1, #e3f2fd);
+            border: 3px solid #ffca28;
+            box-shadow: 0 18px 40px rgba(15,23,42,0.15);
+        }
+
+        .mvp-box {
+            margin-bottom: 20px;
+            padding: 16px 14px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #ffe082, #ffb300);
+            color: #4e342e;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.15);
+        }
+
+        .mvp-title {
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+        }
+
+        .mvp-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .medal-list {
+            margin-top: 10px;
+        }
+
+        .medal-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 16px;
+            margin-bottom: 8px;
+            background: #ffffff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+            font-size: 0.98rem;
+        }
+
+        .medal-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .medal-rank {
+            font-size: 1.4rem;
+        }
+
+        .medal-name {
+            font-weight: 600;
+        }
+
+        .medal-stats {
+            font-size: 0.9rem;
+            color: #546e7a;
+        }
+
+        /* ---------------------- 8. Responsive ---------------------- */
         @media (max-width: 768px) {
             #app {
                 padding: 18px 14px 24px;
@@ -369,6 +469,10 @@
 
             .o-area, .x-area {
                 min-height: 160px;
+            }
+
+            #final-ranking-container {
+                padding: 18px 14px;
             }
         }
     </style>
@@ -391,18 +495,19 @@
 
     <!-- 선생님 로그인 -->
     <div id="teacher-login-screen" class="hidden centered">
-        <h3>👨‍🏫 선생님 비밀번호</h3>
-        <label for="teacher-password">비밀번호</label>
-        <input type="password" id="teacher-password" placeholder="비밀번호를 입력하세요">
+        <h3>🔐 비밀번호를 입려하세요.</h3>
+        <!-- 라벨 및 '비밀번호' 문구 삭제, 플레이스홀더 문구도 삭제 -->
+        <input type="password" id="teacher-password" placeholder="">
         <div style="margin-top: 10px;">
-            <button class="block-button yellow-button" onclick="teacherLogin()">로그인</button>
+            <!-- 버튼 순서: 뒤로가기 → 로그인 으로 변경 -->
             <button class="block-button red-button" onclick="backToHome()">뒤로가기</button>
+            <button class="block-button yellow-button" onclick="teacherLogin()">로그인</button>
         </div>
     </div>
 
     <!-- 선생님 뷰 -->
     <div id="teacher-view" class="hidden">
-        <h3>👨‍🏫 선생님 관리 (문제 #<span id="question-index">0</span>)</h3>
+        <h3>👨‍🏫 관리 화면</h3>
 
         <div style="text-align: right; margin-bottom: 10px;">
             <button class="block-button red-button" onclick="resetGameData()">
@@ -414,12 +519,13 @@
         <div id="teacher-preparation">
             <h4>🧩 문제 준비하기</h4>
 
-            <label for="question-input">문제 문장</label>
+            <!-- 문제 / 정답(OX) / 설명 구분 -->
+            <label for="question-input">문제</label>
             <textarea id="question-input" placeholder="예) 3×4는 12이다. (O/X)"></textarea>
 
             <div style="display:flex; flex-wrap: wrap; gap: 10px; margin-top: 6px;">
                 <div>
-                    <label for="correct-answer">정답</label>
+                    <label for="correct-answer">정답 (O / X)</label>
                     <select id="correct-answer" style="max-width: 120px;">
                         <option value="O">O</option>
                         <option value="X">X</option>
@@ -431,14 +537,32 @@
                 </div>
             </div>
 
+            <label for="explanation-input">설명 (선택)</label>
+            <textarea id="explanation-input" placeholder="문제를 설명해 주고 싶다면 여기에 적어 주세요. (입력하지 않아도 등록 가능합니다)"></textarea>
+
             <button class="block-button green-button" style="margin-top: 8px;" onclick="addQuestionToPool()">
                 ➕ 문제 목록에 추가
             </button>
 
             <hr style="margin: 18px 0;">
 
-            <h4>📋 현재 준비된 문제 (<span id="problem-count">0</span>개)</h4>
+            <h4>📋 현재 등록된 문제 (<span id="problem-count">0</span>개)</h4>
             <div id="problem-list-container"></div>
+            <div class="centered" style="margin-top: 8px;">
+                <button class="block-button red-button" onclick="deleteAllQuestions()">
+                    🗑 문제 전체 삭제
+                </button>
+            </div>
+
+            <hr style="margin: 18px 0;">
+
+            <h4>👥 현재 접속한 학생</h4>
+            <div id="student-list-container"></div>
+            <div class="centered" style="margin-top: 8px;">
+                <button class="block-button red-button" onclick="removeAllStudents()">
+                    🧹 학생 전체 삭제
+                </button>
+            </div>
 
             <hr style="margin: 18px 0;">
 
@@ -475,8 +599,8 @@
             </div>
 
             <div class="centered" style="margin-top: 20px;">
-                <button class="block-button red-button" onclick="endGame()">
-                    💣 게임 강제 종료 (최종 승리자 발표)
+                <button class="block-button red-button" onclick="endGame(false)">
+                    🛑 그만하기 (현재까지 점수로 결과 발표)
                 </button>
             </div>
         </div>
@@ -564,21 +688,34 @@
             </div>
         </div>
     </div>
+
+    <!-- 최종 결과 화면 (선생님용, 전체 화면에 띄워서 아이들이 보기 좋게) -->
+    <div id="final-result-view" class="hidden centered">
+        <h3>🏆 최종 결과 발표</h3>
+        <div id="final-ranking-container">
+            <!-- JS에서 내용 생성 -->
+        </div>
+        <div class="centered" style="margin-top: 18px;">
+            <button class="block-button blue-button" onclick="backToHome()">
+                🔁 처음 화면으로 돌아가기
+            </button>
+        </div>
+    </div>
 </div>
 
 <script>
     // ----------------------------------------------------------------------
     // 1. Firebase 설정 (필수 수정 영역)
     // ----------------------------------------------------------------------
-   const firebaseConfig = {
-  apiKey: "AIzaSyAoEYmlGb4tvWtYEQyBusIlyRDajD7-wtI",
-  authDomain: "ox-quiz-ce39f.firebaseapp.com",
-  databaseURL: "https://ox-quiz-ce39f-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "ox-quiz-ce39f",
-  storageBucket: "ox-quiz-ce39f.firebasestorage.app",
-  messagingSenderId: "509722567204",
-  appId: "1:509722567204:web:728f6e3bd0851909d36eb1"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyAoEYmlGb4tvWtYEQyBusIlyRDajD7-wtI",
+        authDomain: "ox-quiz-ce39f.firebaseapp.com",
+        databaseURL: "https://ox-quiz-ce39f-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "ox-quiz-ce39f",
+        storageBucket: "ox-quiz-ce39f.firebasestorage.app",
+        messagingSenderId: "509722567204",
+        appId: "1:509722567204:web:728f6e3bd0851909d36eb1"
+    };
 
     const app = firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
@@ -627,6 +764,8 @@
         document.getElementById('teacher-view').classList.add('hidden');
         document.getElementById('student-login').classList.add('hidden');
         document.getElementById('student-view').classList.add('hidden');
+        const finalView = document.getElementById('final-result-view');
+        if (finalView) finalView.classList.add('hidden');
     }
 
     function backToHome() {
@@ -678,6 +817,16 @@
         }
     }
 
+    // 비밀번호 입력창에서 엔터키로 로그인 가능하도록
+    const teacherPwInput = document.getElementById('teacher-password');
+    if (teacherPwInput) {
+        teacherPwInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                teacherLogin();
+            }
+        });
+    }
+
     // ----------------------------------------------------------------------
     // 4. Firebase Listeners
     // ----------------------------------------------------------------------
@@ -706,6 +855,7 @@
         studentList = students ? Object.values(students) : [];
 
         updateQuizAreaViews();
+        updateStudentListUI();
 
         if (currentUser) {
             const prevLives = currentUser.lives;
@@ -739,17 +889,27 @@
         const text = document.getElementById('question-input').value.trim();
         const timer = parseInt(document.getElementById('timer-select').value);
         const answer = document.getElementById('correct-answer').value;
+        const explanation = document.getElementById('explanation-input').value.trim();
 
         if (!text || isNaN(timer) || timer < 5) {
             alert('문제 문장과 5초 이상인 제한 시간을 입력해주세요.');
             return;
         }
 
+        if (!answer) {
+            alert('정답(O/X)을 반드시 선택해주세요.');
+            return;
+        }
+
         const newProblem = { text, timer, answer };
+        if (explanation) {
+            newProblem.explanation = explanation;
+        }
 
         problemPoolRef.push(newProblem)
             .then(() => {
                 document.getElementById('question-input').value = '';
+                document.getElementById('explanation-input').value = '';
                 alert('✅ 문제가 문제 목록에 추가되었습니다.');
             })
             .catch(error => {
@@ -775,8 +935,12 @@
 
             const textDiv = document.createElement('div');
             textDiv.className = 'problem-text';
-            const displayText = `${index + 1}. [${problem.answer}] (${problem.timer}초) ${problem.text}`;
-            textDiv.innerText = displayText.length > 80 ? displayText.substring(0, 80) + '…' : displayText;
+
+            let displayText = `${index + 1}. [${problem.answer}] (${problem.timer}초) ${problem.text}`;
+            if (problem.explanation) {
+                displayText += `  -  설명: ${problem.explanation}`;
+            }
+            textDiv.innerText = displayText.length > 100 ? displayText.substring(0, 100) + '…' : displayText;
 
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-btn';
@@ -794,6 +958,54 @@
         database.ref(`quizGame/problemPool/${problemId}`).remove()
             .then(() => alert('✅ 문제가 삭제되었습니다.'))
             .catch(error => alert('❌ 문제 삭제 중 오류: ' + error.message));
+    }
+
+    function deleteAllQuestions() {
+        if (!confirm('⚠️ 등록된 모든 문제를 삭제하시겠습니까?')) return;
+        problemPoolRef.remove()
+            .then(() => alert('✅ 모든 문제가 삭제되었습니다.'))
+            .catch(error => alert('❌ 문제 전체 삭제 중 오류: ' + error.message));
+    }
+
+    // 학생 명단 UI
+    function updateStudentListUI() {
+        const container = document.getElementById('student-list-container');
+        if (!container) return;
+
+        container.innerHTML = '';
+        if (studentList.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:gray;">현재 접속한 학생이 없습니다.</p>';
+            return;
+        }
+
+        studentList.forEach(student => {
+            const row = document.createElement('div');
+            row.className = 'student-row';
+
+            const infoSpan = document.createElement('span');
+            infoSpan.textContent = `${student.emoji} ${student.nickname}  (❤️ ${student.lives} | 🔥 ${student.combo || 0})`;
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'delete-btn';
+            delBtn.textContent = '삭제';
+            delBtn.onclick = () => removeStudent(student.id, student.nickname);
+
+            row.appendChild(infoSpan);
+            row.appendChild(delBtn);
+            container.appendChild(row);
+        });
+    }
+
+    function removeStudent(studentId, nickname) {
+        if (!confirm(`'${nickname}' 학생을 삭제하시겠습니까?`)) return;
+        studentRef.child(studentId).remove()
+            .catch(error => alert('❌ 학생 삭제 중 오류: ' + error.message));
+    }
+
+    function removeAllStudents() {
+        if (!confirm('⚠️ 모든 학생을 삭제하시겠습니까?')) return;
+        studentRef.remove()
+            .catch(error => alert('❌ 학생 전체 삭제 중 오류: ' + error.message));
     }
 
     async function startGameWithPool() {
@@ -840,6 +1052,7 @@
     async function proceedToNextQuestion() {
         const nextIndex = currentGameState.questionIndex + 1;
         if (nextIndex > problemPool.length) {
+            // 모든 문제를 다 풀었으면 자동으로 최종 결과 화면
             endGame(true);
             return;
         }
@@ -875,10 +1088,6 @@
     // ----------------------------------------------------------------------
     function updateTeacherView() {
         const state = currentGameState;
-        const questionIndexEl = document.getElementById('question-index');
-        if (questionIndexEl) {
-            questionIndexEl.innerText = state.questionIndex || 0;
-        }
 
         const prep = document.getElementById('teacher-preparation');
         const live = document.getElementById('teacher-live-quiz');
@@ -894,14 +1103,14 @@
             const remaining = Math.max(0, state.currentQuestion.timer - elapsedSec);
             startTimer(remaining, 'teacher');
 
-        } else if (state.isGameStarted && !state.isActive && state.questionIndex <= problemPool.length) {
+        } else if (state.isGameStarted && !state.isActive && state.questionIndex <= problemPool.length && state.questionIndex > 0) {
             prep.classList.add('hidden');
             live.classList.remove('hidden');
 
             if (!state.showResult) {
                 document.getElementById('current-question').innerHTML =
                     `<span style="color:#fbc02d;">다음 문제 준비 완료!</span><br>` +
-                    `<button class="block-button green-button" onclick="proceedToNextQuestion()">➡️ 다음 문제 출제 (#${state.questionIndex + 1})</button>`;
+                    `<button class="block-button green-button" onclick="proceedToNextQuestion()">➡️ 다음 문제 (#${state.questionIndex + 1})</button>`;
             }
 
         } else {
@@ -994,30 +1203,81 @@
         }
     }
 
+    function showFinalRankingScreen(alive) {
+        hideAll();
+        const view = document.getElementById('final-result-view');
+        const container = document.getElementById('final-ranking-container');
+        view.classList.remove('hidden');
+
+        if (alive.length === 0) {
+            container.innerHTML = `
+                <p style="font-size:1.1rem; color:#546e7a; margin-bottom:12px;">
+                    😢 아쉽지만 이번에는 생존자가 없습니다.
+                </p>
+                <p style="font-size:1rem; color:#607d8b;">
+                    다음에는 모두 같이 끝까지 도전해 볼까요?
+                </p>
+            `;
+            return;
+        }
+
+        const top = alive[0];
+        const top3 = alive.slice(0, 3);
+        const medalEmojis = ['🥇', '🥈', '🥉'];
+
+        let medalHtml = '';
+        top3.forEach((s, idx) => {
+            medalHtml += `
+                <div class="medal-row">
+                    <div class="medal-left">
+                        <div class="medal-rank">${medalEmojis[idx]}</div>
+                        <div>
+                            <div class="medal-name">${s.emoji} ${s.nickname}</div>
+                            <div class="medal-stats">❤️ ${s.lives} / 최대 콤보 🔥 ${s.combo || 0}</div>
+                        </div>
+                    </div>
+                    <div>
+                        ${idx === 0 ? 'MVP 🎖' : ''}
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = `
+            <div class="mvp-box">
+                <div class="mvp-title">오늘의 MVP는 바로…</div>
+                <div class="mvp-name">🏆 ${top.emoji} ${top.nickname} 님!</div>
+                <div style="margin-top:8px; font-size:0.95rem;">
+                    ❤️ 남은 목숨: <b>${top.lives}</b> / 최대 콤보: <b>${top.combo || 0}</b>
+                </div>
+            </div>
+            <div class="medal-list">
+                ${medalHtml}
+            </div>
+        `;
+    }
+
     function endGame(isAllCompleted) {
+        // isAllCompleted가 false이고 아직 문제 풀이 중이면,
+        // 현재까지 점수만으로 결과를 내기 위해 강제 결과 처리(목숨/콤보는 변경 없음)
         if (!isAllCompleted && currentGameState.isActive) {
             processResults(true);
         }
 
-        const alive = studentList.filter(s => s.lives > 0);
-        if (alive.length > 0) {
-            alive.sort((a, b) => (b.combo || 0) - (a.combo || 0));
-            const top = alive[0];
-            const rankingMessage = alive.slice(0, 5).map((s, i) =>
-                `${i + 1}위: ${s.emoji} ${s.nickname} (최대 콤보: ${s.combo || 0})`
-            ).join('\n');
+        const alive = studentList
+            .filter(s => s.lives > 0)
+            .sort((a, b) => (b.combo || 0) - (a.combo || 0));
 
-            alert(`🎉 게임 종료! (총 ${problemPool.length}문제 완료)\n\n🏆 MVP: ${top.emoji} ${top.nickname} (${top.combo || 0}콤보)\n\n📊 최종 순위\n${rankingMessage}`);
-        } else {
-            alert('😢 아쉽지만 생존자가 없습니다. 게임을 종료합니다.');
-        }
-
+        // Firebase 상의 게임 상태는 종료로 처리
         stateRef.update({
             isActive: false,
             showResult: false,
             isGameStarted: false,
             questionIndex: 0
         });
+
+        // 별도의 결과 화면으로 최종 순위 및 MVP 표시
+        showFinalRankingScreen(alive);
     }
 
     // ----------------------------------------------------------------------
@@ -1083,6 +1343,7 @@
 
             const qText = document.getElementById('question-text');
             if (qText && state.currentQuestion) {
+                // 설명이 있다면 함께 표시할 수도 있음 (옵션)
                 qText.innerText = state.currentQuestion.text;
             }
 
@@ -1288,6 +1549,7 @@
 
 </body>
 </html>
+
 
 
 
