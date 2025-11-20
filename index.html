@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+html<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -7,6 +7,9 @@
     <!-- Firebase v8 -->
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+
+    <!-- SheetJS for Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
         * {
@@ -149,6 +152,10 @@
             background: linear-gradient(135deg, #42a5f5, #1e88e5);
         }
 
+        .purple-button {
+            background: linear-gradient(135deg, #ab47bc, #8e24aa);
+        }
+
         /* ---------------------- 3. Problem List ---------------------- */
         #problem-list-container {
             max-height: 240px;
@@ -190,6 +197,245 @@
         .delete-btn:active {
             transform: translateY(1px);
             box-shadow: 0 1px 0 rgba(0,0,0,0.15);
+        }
+
+        /* ---------------------- Excel Upload Section ---------------------- */
+        .excel-upload-section {
+            margin: 20px 0;
+            padding: 16px;
+            background: #f0f8ff;
+            border-radius: 16px;
+            border: 2px dashed #64b5f6;
+        }
+
+        .excel-upload-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .excel-upload-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1565c0;
+        }
+
+        .help-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: #42a5f5;
+            color: white;
+            border-radius: 50%;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .help-icon:hover {
+            background: #1e88e5;
+            transform: scale(1.1);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #42a5f5, #1e88e5);
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .file-input-label:hover {
+            background: linear-gradient(135deg, #1e88e5, #1565c0);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
+        }
+
+        .file-input-label:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .selected-file {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #1565c0;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e3f2fd;
+        }
+
+        .modal-title {
+            font-size: 1.4rem;
+            color: #1565c0;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            color: #90a4ae;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+            margin: 0;
+            box-shadow: none;
+        }
+
+        .modal-close:hover {
+            background: #f5f5f5;
+            color: #546e7a;
+            transform: none;
+        }
+
+        .modal-body {
+            color: #37474f;
+            line-height: 1.6;
+        }
+
+        .format-section {
+            margin: 16px 0;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 12px;
+        }
+
+        .format-title {
+            font-weight: 600;
+            color: #1565c0;
+            margin-bottom: 8px;
+        }
+
+        .format-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .format-table th,
+        .format-table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #e0e0e0;
+        }
+
+        .format-table th {
+            background: #e3f2fd;
+            color: #1565c0;
+            font-weight: 600;
+        }
+
+        .format-table td {
+            font-size: 0.9rem;
+        }
+
+        .example-note {
+            margin-top: 12px;
+            padding: 10px;
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .warning-note {
+            margin-top: 12px;
+            padding: 10px;
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .success-note {
+            margin-top: 12px;
+            padding: 10px;
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            border-radius: 4px;
+            font-size: 0.9rem;
         }
 
         /* ---------------------- 4. Quiz Field / Avatar ---------------------- */
@@ -594,6 +840,15 @@
             #final-ranking-container {
                 padding: 18px 14px;
             }
+
+            .modal-content {
+                max-width: 95%;
+                padding: 18px;
+            }
+
+            .format-table {
+                font-size: 0.85rem;
+            }
         }
     </style>
 </head>
@@ -608,12 +863,11 @@
         </p>
         <button class="block-button yellow-button" onclick="showTeacherLogin()">👨‍🏫 선생님으로 접속</button>
         <button class="block-button blue-button" onclick="showStudentLogin()">👧👦 학생으로 접속</button>
-        </p>
     </div>
 
     <!-- 선생님 로그인 -->
     <div id="teacher-login-screen" class="hidden centered">
-        <h3>🔐 비밀번호를 입려하세요.</h3>
+        <h3>🔐 비밀번호를 입력하세요.</h3>
         <input type="password" id="teacher-password" placeholder="">
         <div style="margin-top: 10px;">
             <button class="block-button red-button" onclick="backToHome()">뒤로가기</button>
@@ -627,7 +881,28 @@
 
         <!-- 문제 준비 영역 -->
         <div id="teacher-preparation">
-            <h4>🧩 문제 준비하기</h4>
+            <!-- Excel 업로드 섹션 -->
+            <div class="excel-upload-section">
+                <div class="excel-upload-header">
+                    <div class="excel-upload-title">
+                        📊 Excel 파일로 문제 일괄 등록
+                    </div>
+                    <div class="help-icon" onclick="showExcelFormatHelp()" title="형식 안내 보기">?</div>
+                </div>
+                
+                <div class="file-input-wrapper">
+                    <input type="file" id="excel-file-input" accept=".xlsx,.xls" onchange="handleExcelUpload(event)">
+                    <label for="excel-file-input" class="file-input-label">
+                        <span>📁</span>
+                        <span>Excel 파일 선택하기</span>
+                    </label>
+                </div>
+                <div id="selected-file-name" class="selected-file hidden"></div>
+            </div>
+
+            <hr style="margin: 18px 0;">
+
+            <h4>🧩 문제 개별 추가하기</h4>
 
             <label for="question-input">문제</label>
             <textarea id="question-input" placeholder="예) 3×4는 12이다. (O/X)"></textarea>
@@ -854,6 +1129,108 @@
     </div>
 </div>
 
+<!-- Excel Format Help Modal -->
+<div id="excel-format-modal" class="modal-overlay hidden" onclick="closeExcelFormatHelp(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 class="modal-title">📊 Excel 파일 형식 안내</h3>
+            <button class="modal-close" onclick="closeExcelFormatHelp()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="format-section">
+                <div class="format-title">📋 필수 형식</div>
+                <p>Excel 파일의 <strong>첫 번째 행(헤더)</strong>은 반드시 다음과 같이 구성되어야 합니다:</p>
+                <table class="format-table">
+                    <thead>
+                        <tr>
+                            <th>열 순서</th>
+                            <th>헤더명</th>
+                            <th>설명</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1열 (A열)</td>
+                            <td><strong>문제</strong></td>
+                            <td>OX 퀴즈 문제 내용</td>
+                        </tr>
+                        <tr>
+                            <td>2열 (B열)</td>
+                            <td><strong>정답</strong></td>
+                            <td>O 또는 X (대문자)</td>
+                        </tr>
+                        <tr>
+                            <td>3열 (C열)</td>
+                            <td><strong>설명</strong></td>
+                            <td>정답 해설 (선택사항, 비워둘 수 있음)</td>
+                        </tr>
+                        <tr>
+                            <td>4열 (D열)</td>
+                            <td><strong>제한시간</strong></td>
+                            <td>초 단위 숫자 (5~60)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="example-note">
+                <strong>✏️ 예시:</strong><br>
+                <table class="format-table" style="margin-top:8px;">
+                    <thead>
+                        <tr>
+                            <th>문제</th>
+                            <th>정답</th>
+                            <th>설명</th>
+                            <th>제한시간</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>지구는 태양 주위를 돈다</td>
+                            <td>O</td>
+                            <td>지구는 1년에 한 번 태양 주위를 공전합니다</td>
+                            <td>15</td>
+                        </tr>
+                        <tr>
+                            <td>1+1=3이다</td>
+                            <td>X</td>
+                            <td>1+1은 2입니다</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>사람은 물 없이 살 수 있다</td>
+                            <td>X</td>
+                            <td></td>
+                            <td>12</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="warning-note">
+                <strong>⚠️ 주의사항:</strong>
+                <ul style="margin:8px 0; padding-left:20px;">
+                    <li>헤더(첫 번째 행)는 반드시 포함되어야 합니다</li>
+                    <li>정답은 반드시 <strong>O</strong> 또는 <strong>X</strong> (대문자)만 가능합니다</li>
+                    <li>제한시간은 <strong>5초 이상 60초 이하</strong>의 숫자여야 합니다</li>
+                    <li>설명은 비워둘 수 있습니다 (선택사항)</li>
+                    <li>문제와 정답은 <strong>필수 입력</strong>입니다</li>
+                </ul>
+            </div>
+
+            <div class="success-note">
+                <strong>✅ 업로드 순서:</strong>
+                <ol style="margin:8px 0; padding-left:20px;">
+                    <li>위 형식에 맞게 Excel 파일 작성</li>
+                    <li>"Excel 파일 선택하기" 버튼 클릭</li>
+                    <li>파일 선택 → 자동으로 문제가 등록됩니다</li>
+                    <li>등록된 문제 목록에서 확인 가능</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     // ----------------------------------------------------------------------
     // 1. Firebase 설정
@@ -917,6 +1294,176 @@
     }
 
     // ----------------------------------------------------------------------
+    // Excel Upload Functions
+    // ----------------------------------------------------------------------
+    function showExcelFormatHelp() {
+        document.getElementById('excel-format-modal').classList.remove('hidden');
+    }
+
+    function closeExcelFormatHelp(event) {
+        if (!event || event.target === event.currentTarget) {
+            document.getElementById('excel-format-modal').classList.add('hidden');
+        }
+    }
+
+    async function handleExcelUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const fileNameDisplay = document.getElementById('selected-file-name');
+        fileNameDisplay.textContent = `선택된 파일: ${file.name}`;
+        fileNameDisplay.classList.remove('hidden');
+
+        try {
+            const data = await readExcelFile(file);
+            const questions = parseExcelData(data);
+            
+            if (questions.length === 0) {
+                alert('❌ 유효한 문제를 찾을 수 없습니다. Excel 형식을 확인해주세요.');
+                return;
+            }
+
+            // Firebase에 문제들 추가
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const question of questions) {
+                try {
+                    await problemPoolRef.push(question);
+                    successCount++;
+                } catch (error) {
+                    console.error('문제 추가 오류:', error);
+                    errorCount++;
+                }
+            }
+
+            if (successCount > 0) {
+                alert(`✅ 총 ${successCount}개의 문제가 성공적으로 등록되었습니다!${errorCount > 0 ? `\n(${errorCount}개 실패)` : ''}`);
+            } else {
+                alert('❌ 문제 등록에 실패했습니다.');
+            }
+
+            // 파일 입력 초기화
+            event.target.value = '';
+            fileNameDisplay.classList.add('hidden');
+
+        } catch (error) {
+            console.error('Excel 파일 처리 오류:', error);
+            alert('❌ Excel 파일을 읽는 중 오류가 발생했습니다.\n파일 형식을 확인해주세요.');
+            event.target.value = '';
+            fileNameDisplay.classList.add('hidden');
+        }
+    }
+
+    function readExcelFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // 첫 번째 시트 읽기
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // JSON으로 변환
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    resolve(jsonData);
+                } catch (error) {
+                    reject(error);
+                }
+            };
+            
+            reader.onerror = function(error) {
+                reject(error);
+            };
+            
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
+    function parseExcelData(data) {
+        const questions = [];
+        
+        if (data.length < 2) {
+            console.error('Excel 파일에 데이터가 충분하지 않습니다.');
+            return questions;
+        }
+
+        // 헤더 행 검증 (첫 번째 행)
+        const headers = data[0].map(h => String(h).trim());
+        console.log('헤더:', headers);
+
+        // 헤더 검증 (대소문자 구분 없이)
+        const requiredHeaders = ['문제', '정답', '설명', '제한시간'];
+        const headerLower = headers.map(h => h.toLowerCase());
+        const hasValidHeaders = requiredHeaders.every(required => 
+            headerLower.includes(required.toLowerCase())
+        );
+
+        if (!hasValidHeaders) {
+            alert(`❌ Excel 헤더가 올바르지 않습니다.\n필수 헤더: ${requiredHeaders.join(', ')}`);
+            return questions;
+        }
+
+        // 헤더 인덱스 찾기
+        const questionIdx = headerLower.findIndex(h => h === '문제');
+        const answerIdx = headerLower.findIndex(h => h === '정답');
+        const explanationIdx = headerLower.findIndex(h => h === '설명');
+        const timerIdx = headerLower.findIndex(h => h === '제한시간');
+
+        // 데이터 행 처리 (두 번째 행부터)
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            
+            // 빈 행 스킵
+            if (!row || row.length === 0 || !row[questionIdx]) {
+                continue;
+            }
+
+            const questionText = String(row[questionIdx] || '').trim();
+            const answer = String(row[answerIdx] || '').trim().toUpperCase();
+            const explanation = String(row[explanationIdx] || '').trim();
+            const timer = parseInt(row[timerIdx]);
+
+            // 유효성 검사
+            if (!questionText) {
+                console.warn(`행 ${i + 1}: 문제가 비어있습니다.`);
+                continue;
+            }
+
+            if (answer !== 'O' && answer !== 'X') {
+                console.warn(`행 ${i + 1}: 정답이 O 또는 X가 아닙니다. (입력값: ${answer})`);
+                continue;
+            }
+
+            if (isNaN(timer) || timer < 5 || timer > 60) {
+                console.warn(`행 ${i + 1}: 제한시간이 유효하지 않습니다. (입력값: ${row[timerIdx]})`);
+                continue;
+            }
+
+            // 문제 객체 생성
+            const question = {
+                text: questionText,
+                answer: answer,
+                timer: timer
+            };
+
+            // 설명이 있으면 추가
+            if (explanation) {
+                question.explanation = explanation;
+            }
+
+            questions.push(question);
+        }
+
+        console.log(`파싱 완료: ${questions.length}개 문제`);
+        return questions;
+    }
+
+    // ----------------------------------------------------------------------
     // 3. View Management
     // ----------------------------------------------------------------------
     function hideAll() {
@@ -931,7 +1478,7 @@
     function backToHome() {
         isTeacherMode = false;
         currentUser = null;
-        finalShown = false;          // ★ 홈으로 돌아갈 땐 항상 초기화
+        finalShown = false;
         hideAll();
         document.getElementById('initial-screen').classList.remove('hidden');
     }
@@ -956,7 +1503,7 @@
         isTeacherMode = true;
         hideAll();
         document.getElementById('teacher-view').classList.remove('hidden');
-        finalShown = false;  // 관리 화면 들어오면 새로 세션 시작 관점
+        finalShown = false;
     }
 
     function showStudentLogin() {
@@ -1051,11 +1598,9 @@
 
         updateLifeRuleInfo(currentGameState.comboThreshold || 0);
 
-        // resetToHome 신호 처리 (선생님이 결과에서 관리 화면으로 돌아간 경우)
         if (currentGameState.resetToHome && currentGameState.resetToHome !== lastResetToHome) {
             lastResetToHome = currentGameState.resetToHome;
             if (!isTeacherMode) {
-                // 학생 쪽은 모두 처음 화면으로
                 currentUser = null;
                 finalShown = false;
                 hideAll();
@@ -1063,20 +1608,14 @@
             }
         }
 
-        // 선생님 화면이 열려 있을 때만 교사용 화면 업데이트
         if (!document.getElementById('teacher-view').classList.contains('hidden')) {
             updateTeacherView();
         }
 
-        // 학생 화면 열려 있을 때만 학생 상태 반영
         if (currentUser && !document.getElementById('student-view').classList.contains('hidden')) {
             updateStudentStateFromDB();
         }
 
-        // ★ 최종결과 화면 자동표시는
-        //  ① 선생님: 관리 화면이 열려 있고,
-        //  ② 학생: 학생 화면이 열려 있으며 currentUser가 있는 경우에만
-        //    → 즉, 첫 화면(선생님/학생 선택 화면)에서는 절대 안 뜸
         if (currentGameState.gameFinished && !finalShown) {
             const teacherViewOpen = !document.getElementById('teacher-view').classList.contains('hidden');
             const studentViewOpen = !document.getElementById('student-view').classList.contains('hidden');
@@ -1119,7 +1658,6 @@
             }
         }
 
-        // 여기서도 동일한 조건으로만 최종 결과 자동 표시
         if (currentGameState.gameFinished && !finalShown) {
             const teacherViewOpen = !document.getElementById('teacher-view').classList.contains('hidden');
             const studentViewOpen = !document.getElementById('student-view').classList.contains('hidden');
@@ -1235,7 +1773,6 @@
             .catch(error => alert('❌ 문제 전체 삭제 중 오류: ' + error.message));
     }
 
-    // 학생 명단 UI
     function updateStudentListUI() {
         const container = document.getElementById('student-list-container');
         const countEl = document.getElementById('student-count');
@@ -1347,7 +1884,6 @@
     }
 
     async function proceedToNextQuestion() {
-        // 규칙 설명 중이면 첫 문제로
         if (currentGameState.isGameStarted && currentGameState.preGameExplain) {
             await startFirstQuestion();
             return;
@@ -1742,7 +2278,6 @@
         }
     }
 
-    // 교사: 관리 화면으로 돌아가기 → 모든 학생 정보 삭제 + 모든 학생은 처음 화면으로
     async function backToTeacherFromResult() {
         try {
             await studentRef.remove();
@@ -1762,7 +2297,6 @@
         showTeacherView();
     }
 
-    // 학생용 개별 버튼은 더 이상 사용하지 않지만, 함수는 남겨둠(호출되는 곳 없음)
     async function backToStudentFromResult() {
         if (currentUser) {
             try {
@@ -1841,7 +2375,8 @@
         if (!state.isGameStarted || !state.questionIndex || state.questionIndex === 0) {
             if (ruleDiv) ruleDiv.classList.add('hidden');
             waiting.classList.remove('hidden');
-            answering.classList.add('hidden');
+            answering.classList.ad
+             d('hidden');
             result.classList.add('hidden');
             return;
         }
