@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Roblox MAX! OX Quiz - Real-time Multiplayer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Bangers&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+
+    <style>
+        /* CSS 스타일은 이전 버전과 동일하게 유지됩니다. */
+        /* ---------------------- 1. Roblox Global Style ---------------------- */
+        body { 
+            font-family: 'Bangers', cursive; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #64dd17; 
+            background-image: 
+                linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.1) 75%, rgba(0,0,0,0.1)),
+                linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.1) 75%, rgba(0,0,0,0.1));
+            background-size: 50px 50px; 
+            background-position: 0 0, 25px 25px; 
+            color: #212121; 
+        }
+        #app { 
+            max-width: 950px; 
+            margin: 20px auto; 
+            padding: 40px; 
+            background: #ffffff; 
+            border: 8px solid #303030; 
+            border-radius: 15px; 
+            box-shadow: 15px 15px 0px #303030; 
+            position: relative;
+            z-index: 10;
+        }
+        h2, h3, h4 { 
+            font-family: 'Press Start 2P', cursive; 
+            color: #000000; 
+            text-align: center;
+            text-shadow: 3px 3px 0px #ffea00; 
+            margin-bottom: 25px;
+        }
+        h2 { font-size: 2.5em; }
+        h3 { font-size: 2em; }
+        h4 { font-size: 1.5em; }
+
+        /* ---------------------- 2. Block Button Style ---------------------- */
+        button, .block-button { 
+            font-family: 'Press Start 2P', cursive;
+            padding: 18px 30px; 
+            margin: 10px; 
+            border: 5px solid #000000; 
+            border-radius: 8px; 
+            font-size: 1.2em; 
+            font-weight: bold; 
+            cursor: pointer; 
+            box-shadow: 6px 6px 0px #000000; 
+            transition: all 0.1s;
+            text-shadow: 2px 2px 0 #000;
+            color: white;
+            background-color: #3498db; 
+            letter-spacing: 1px;
+        }
+        button:active, .block-button:active {
+            box-shadow: 2px 2px 0px #000000;
+            transform: translate(4px, 4px); 
+        }
+        .green-button { background-color: #2ecc71; } 
+        .red-button { background-color: #e74c3c; } 
+        .yellow-button { background-color: #f1c40f; color: #000; text-shadow: none; } 
+
+        /* ---------------------- 3. Layout and Elements ---------------------- */
+        .hidden { display: none !important; }
+        .centered { text-align: center; }
+        input, select { 
+            font-family: 'Bangers', cursive;
+            padding: 12px; 
+            margin: 10px auto; 
+            border: 3px solid #000000; 
+            border-radius: 8px; 
+            box-shadow: 4px 4px 0px #000000; 
+            font-size: 1.1em; 
+            width: 80%; 
+            max-width: 450px;
+            display: block;
+            background-color: #fefefe;
+            color: #212121;
+        }
+        label {
+            font-family: 'Press Start 2P', cursive;
+            display: block;
+            margin-top: 20px;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 0.9em;
+            text-shadow: 1px 1px 0px #fff;
+        }
+        /* Live Quiz Area, Badges, Avatars, Combo, Result Screen styles remain */
+        .result-box { display: flex; justify-content: space-around; margin-top: 30px; }
+        .o-area, .x-area { 
+            flex-basis: 48%; 
+            padding: 20px; 
+            border: 6px solid #000; 
+            border-radius: 12px; 
+            min-height: 200px; 
+            box-shadow: 8px 8px 0px #000;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 10px; 
+        }
+        .o-area { background-color: #4CAF50; } 
+        .x-area { background-color: #F44336; } 
+        .count-badge { 
+            font-family: 'Press Start 2P', cursive;
+            font-size: 2.5em; 
+            font-weight: bold; 
+            padding: 15px 0; 
+            color: #000; 
+            background: #FFD700; 
+            border-radius: 8px; 
+            margin-bottom: 20px;
+            border: 4px solid #000;
+            box-shadow: 4px 4px 0px #000;
+            width: 100%;
+            text-shadow: 2px 2px 0px #fff;
+        }
+        .student-avatar { 
+            display: inline-block; 
+            margin: 5px; 
+            padding: 10px 15px; 
+            border-radius: 0%; 
+            background: #ffffff; 
+            font-size: 1.2em; 
+            font-weight: bold;
+            border: 3px solid #000;
+            box-shadow: 3px 3px 0px #000;
+            white-space: nowrap;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
+            cursor: help; 
+        }
+        .spectator-mode { 
+            opacity: 0.4;
+            filter: grayscale(100%);
+            text-decoration: line-through; 
+            border-color: #757575;
+            box-shadow: 2px 2px 0px #757575;
+            background-color: #bdbdbd;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div id="initial-screen" class="centered">
+        <h2>🚀 Roblox 퀴즈 스타트! 🚀</h2>
+        <button class="block-button yellow-button" onclick="showTeacherLogin()">👨‍🏫 선생님으로 접속</button>
+        <button class="block-button yellow-button" onclick="showStudentLogin()">👧👦 학생으로 접속</button>
+        <p style="font-family: sans-serif; font-size: 0.8em; color: gray;">
+            (Firebase를 통해 실시간 동기화됩니다.)
+        </p>
+    </div>
+    
+    <div id="teacher-login-screen" class="hidden centered">
+        <h3>👨‍🏫 선생님 비밀번호 입력</h3>
+        <input type="password" id="teacher-password" placeholder="비밀번호 입력">
+        <button class="block-button yellow-button" onclick="teacherLogin()">로그인</button>
+    </div>
+
+    <div id="teacher-view" class="hidden">
+        <h3>👨‍🏫 선생님 관리 블록 (문제 #<span id="question-index">0</span>)</h3>
+        <button class="block-button red-button" onclick="resetGameData()" style="margin-bottom: 20px;">
+            🔄 데이터 초기화 (전체 삭제)
+        </button>
+        
+        <div id="teacher-preparation" class="centered">
+            <input type="hidden" id="game-mode" value="individual"> 
+            
+            <label for="combo-life-threshold">추가 목숨 획득 콤보 횟수:</label>
+            <input type="number" id="combo-life-threshold" value="5" min="2" max="10" placeholder="콤보 횟수 (기본 5)">
+
+            <label for="question-input">문제 입력:</label>
+            <input type="text" id="question-input" placeholder="💡 O/X 퀴즈 문제를 입력하세요">
+            <label for="timer-select">제한 시간 (초):</label>
+            <input type="number" id="timer-select" value="10" min="5" max="30" placeholder="제한 시간 (초)">
+            <label for="correct-answer">정답 설정:</label>
+            <select id="correct-answer">
+                <option value="O">O</option>
+                <option value="X">X</option>
+            </select>
+            <button class="block-button green-button" onclick="sendQuestion()">⚡ 문제 출제 및 퀴즈 시작 (다음 문제)</button>
+        </div>
+
+        <div id="teacher-live-quiz" class="hidden">
+            <h4>🚨 LIVE 퀴즈: <span id="current-question"></span></h4>
+            <div id="timer-display">TIME: <span id="timer-value">10</span></div>
+            <div class="result-box">
+                <div class="o-area">
+                    <div class="count-badge">O: <span id="o-count">0</span></div>
+                    <div id="o-answers" class="answer-list"></div>
+                </div>
+                <div class="x-area">
+                    <div class="count-badge">X: <span id="x-count">0</span></div>
+                    <div id="x-answers" class="answer-list"></div>
+                </div>
+            </div>
+            <button class="block-button red-button" onclick="endGame()">💣 게임 강제 종료 (최종 승리자 발표)</button>
+        </div>
+    </div>
+
+    <div id="student-login" class="hidden centered">
+        <h3>👤 아바타 설정 블록</h3>
+        <input type="text" id="student-nickname" placeholder="⭐ 닉네임 입력">
+        <label for="emoji-select">동물 이모지 선택:</label>
+        <select id="emoji-select">
+            <option value="🦁">🦁 사자</option>
+            <option value="🐰">🐰 토끼</option>
+            <option value="🐶">🐶 강아지</option>
+            <option value="🐻">🐻 곰</option>
+            <option value="🦊">🦊 여우</option>
+            <option value="🐼">🐼 판다</option>
+            <option value="🐯">🐯 호랑이</option>
+            <option value="🐨">🐨 코알라</option>
+            <option value="🐵">🐵 원숭이</option>
+            <option value="🐸">🐸 개구리</option>
+            <option value="🐧">🐧 🐧</option>
+            <option value="🦉">🦉 부엉이</option>
+            <option value="🦆">🦆 오리</option>
+            <option value="🐙">🐙 문어</option>
+            <option value="🦀">🦀 게</option>
+            <option value="🐢">🐢 거북이</option>
+        </select>
+        <button class="block-button yellow-button" onclick="loginStudent()">▶️ 퀴즈방 입장</button>
+    </div>
+
+    <div id="student-view" class="hidden">
+        <h3 id="student-info" class="centered"></h3>
+        <p id="student-lives">❤️ 목숨: 3</p>
+        <div id="life-rule-info"></div>
+        <div id="combo-indicator" class="combo-display hidden">
+            🔥 <span id="combo-count">0</span> COMBO!
+        </div>
+
+        <div id="student-waiting" class="quiz-state centered">
+            <h4 class="red-button" style="background-color: #3498db; border-color: #2c3e50; display: inline-block;">
+                📢 선생님이 블록을 조립 중입니다. 잠시만 기다려주세요!
+            </h4>
+        </div>
+
+        <div id="student-answering" class="quiz-state hidden centered">
+            <h4 id="question-text" style="font-size: 1.8em; border-bottom: 5px solid #f39c12; padding-bottom: 10px;"></h4>
+            <div id="student-timer-display">TIME: <span id="student-timer-value">10</span></div>
+            <div class="answer-buttons">
+                <button class="o-btn green-button" onclick="submitAnswer('O')">O</button>
+                <button class="x-btn red-button" onclick="submitAnswer('X')">X</button>
+            </div>
+        </div>
+
+        <div id="student-result" class="quiz-state hidden centered">
+            <div id="result-screen">
+                <div class="result-emoji" id="result-emoji">✨</div>
+                <h4 id="result-message"></h4>
+            </div>
+            <div id="spectator-view" class="result-box">
+                <div class="o-area"><div class="count-badge">O: <span class="o-count-spectator">0</span></div><div id="o-answers-spectator" class="answer-list"></div></div>
+                <div class="x-area"><div class="count-badge">X: <span class="x-count-spectator">0</span></div><div id="x-answers-spectator" class="answer-list"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ----------------------------------------------------------------------
+    // 📢 1. Firebase 설정 (필수 수정 영역) 📢
+    // ----------------------------------------------------------------------
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY", // 사용자님의 API Key로 교체하세요.
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        databaseURL: "https://YOUR-PROJECT-ID-default-rtdb.firebaseio.com", // 프로젝트 Realtime DB URL로 교체하세요.
+        projectId: "YOUR-PROJECT-ID",
+        storageBucket: "YOUR-PROJECT_ID.appspot.com",
+        messagingSenderId: "...",
+        appId: "..."
+    };
+
+    // Firebase 초기화
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const gameRef = database.ref('quizGame');
+    const studentRef = database.ref('quizGame/students');
+    const stateRef = database.ref('quizGame/state');
+    
+    // ----------------------------------------------------------------------
+    // 2. 전역 변수 및 상수
+    // ----------------------------------------------------------------------
+    const TEACHER_PASSWORD = 'teacher1234'; // 선생님 비밀번호
+    let currentUser = null; // 현재 접속한 학생 정보 (로컬)
+    let currentGameState = {}; // 현재 게임 상태 (DB 동기화)
+    let studentList = []; // 현재 모든 학생 목록 (DB 동기화)
+    let timerInterval = null;
+    let timerStartTime = 0;
+    
+    // ----------------------------------------------------------------------
+    // 3. View Management
+    // ----------------------------------------------------------------------
+    function hideAll() {
+        document.getElementById('initial-screen').classList.add('hidden');
+        document.getElementById('teacher-login-screen').classList.add('hidden');
+        document.getElementById('teacher-view').classList.add('hidden');
+        document.getElementById('student-login').classList.add('hidden');
+        document.getElementById('student-view').classList.add('hidden');
+    }
+
+    // [MODIFIED] 초기화면에서 로그인 화면으로 분기
+    function showTeacherLogin() {
+        hideAll();
+        document.getElementById('teacher-login-screen').classList.remove('hidden');
+    }
+    
+    // [NEW] 선생님 로그인 로직
+    function teacherLogin() {
+        const password = document.getElementById('teacher-password').value;
+        if (password === TEACHER_PASSWORD) {
+            showTeacherView();
+        } else {
+            alert('비밀번호가 틀렸습니다.');
+            document.getElementById('teacher-password').value = '';
+        }
+    }
+
+    function showTeacherView() {
+        hideAll();
+        document.getElementById('teacher-view').classList.remove('hidden');
+        // 선생님 뷰는 데이터 구독만 하고, 화면 업데이트는 리스너에서 처리합니다.
+    }
+
+    function showStudentLogin() {
+        hideAll();
+        document.getElementById('student-login').classList.remove('hidden');
+    }
+
+    function showStudentView() {
+        hideAll();
+        document.getElementById('student-view').classList.remove('hidden');
+        // 학생 뷰 전환 시 규칙 업데이트
+        if(currentGameState.comboThreshold) {
+             updateLifeRuleInfo(currentGameState.comboThreshold);
+        }
+    }
+    
+    function updateLifeRuleInfo(threshold) {
+        const infoElement = document.getElementById('life-rule-info');
+        if (threshold > 0) {
+            infoElement.innerHTML = `⚠️ 규칙: **${threshold}연속 정답** 시 ❤️ 목숨 +1 보너스!`;
+            infoElement.classList.remove('hidden');
+        } else {
+            infoElement.classList.add('hidden');
+        }
+    }
+    
+    // ----------------------------------------------------------------------
+    // 4. Firebase Data Listeners (실시간 동기화 핵심)
+    // ----------------------------------------------------------------------
+    
+    // 게임 상태(문제, 타이머 등) 변화 감지
+    stateRef.on('value', (snapshot) => {
+        currentGameState = snapshot.val() || { questionIndex: 0, isActive: false, comboThreshold: 5 };
+        
+        // 콤보 규칙 업데이트
+        updateLifeRuleInfo(currentGameState.comboThreshold);
+
+        // 선생님 뷰 업데이트 (대기/라이브 전환)
+        if (!document.getElementById('teacher-view').classList.contains('hidden')) {
+            updateTeacherView();
+        }
+
+        // 학생 뷰 업데이트 (문제 풀이/대기 전환)
+        if (currentUser && !document.getElementById('student-view').classList.contains('hidden')) {
+             updateStudentStateFromDB();
+        }
+    });
+    
+    // 학생 목록(답변, 목숨 등) 변화 감지
+    studentRef.on('value', (snapshot) => {
+        const students = snapshot.val();
+        studentList = students ? Object.values(students) : [];
+        
+        // 선생님/학생 뷰의 답변 현황 업데이트
+        updateQuizAreaViews();
+        
+        // 현재 접속한 학생의 로컬 정보 업데이트
+        if (currentUser) {
+            const updatedUser = studentList.find(s => s.id === currentUser.id);
+            if (updatedUser) {
+                currentUser = updatedUser;
+                document.getElementById('student-lives').innerText = `❤️ 목숨: ${currentUser.lives}`;
+                updateComboDisplay();
+            }
+        }
+    });
+
+    // ----------------------------------------------------------------------
+    // 5. Student Logic
+    // ----------------------------------------------------------------------
+
+    // [MODIFIED] Firebase에 학생 정보 저장/업데이트
+    async function loginStudent() {
+        const nickname = document.getElementById('student-nickname').value;
+        const emoji = document.getElementById('emoji-select').value;
+        if (!nickname) {
+            alert('닉네임을 입력해야 게임을 시작할 수 있어요!');
+            return;
+        }
+
+        const studentDataSnapshot = await studentRef.once('value');
+        const students = studentDataSnapshot.val();
+        
+        // 기존 닉네임 사용자를 찾습니다.
+        let existingUser = studentList.find(s => s.nickname === nickname);
+        
+        let studentId;
+        
+        if (existingUser) {
+            studentId = existingUser.id;
+            // 로컬 정보 업데이트
+            currentUser = existingUser;
+            currentUser.emoji = emoji; 
+        } else {
+            studentId = 's_' + Date.now();
+            currentUser = { 
+                id: studentId, 
+                nickname, 
+                emoji, 
+                lives: 3, 
+                answered: null,
+                combo: 0
+            };
+        }
+        
+        // Firebase에 정보 쓰기/업데이트
+        await database.ref(`quizGame/students/${studentId}`).update(currentUser);
+
+        document.getElementById('student-info').innerHTML = `${currentUser.emoji} **${currentUser.nickname}**님, 환영해요!`;
+        showStudentView();
+    }
+    
+    // [MODIFIED] DB 상태에 따라 학생 뷰 전환
+    function updateStudentStateFromDB() {
+        const state = currentGameState;
+        document.querySelectorAll('.quiz-state').forEach(el => el.classList.add('hidden'));
+
+        if (!currentUser || currentUser.lives <= 0) {
+            document.getElementById('student-result').classList.remove('hidden');
+            document.getElementById('result-message').innerHTML = "💥 **YOU LOSE!** 💥 이제 친구들의 플레이를 관전합니다.";
+            return;
+        }
+
+        if (state.isActive) {
+            // 문제 출제 중
+            document.getElementById('question-text').innerText = state.currentQuestion.text;
+            document.getElementById('student-answering').classList.remove('hidden');
+            document.querySelectorAll('.answer-buttons button').forEach(btn => btn.disabled = false);
+            
+            // 타이머 재시작 (동기화)
+            const remainingTime = Math.max(0, state.currentQuestion.timer - Math.floor((Date.now() - state.answerTime) / 1000));
+            startTimer(remainingTime, 'student');
+            
+        } else if (state.showResult) {
+            // 결과 표시 중
+            showResultScreen(state.isCurrentUserCorrect, state.isLifeGained, state.currentQuestion);
+            
+        } else {
+            // 대기 중
+            document.getElementById('student-waiting').classList.remove('hidden');
+        }
+    }
+    
+    // [MODIFIED] Firebase에 답변 업데이트
+    function submitAnswer(answer) {
+        if (currentUser.lives <= 0 || !currentGameState.isActive) return;
+        
+        currentUser.answered = answer; 
+        
+        // Firebase에 답변 필드만 업데이트
+        database.ref(`quizGame/students/${currentUser.id}/answered`).set(answer);
+        
+        playSound(400 + Math.random() * 200, 0.1);
+        
+        // 버튼 시각적 피드백 (로컬에서만 처리)
+        document.querySelectorAll('.answer-buttons button').forEach(btn => {
+            btn.style.borderColor = '#000'; 
+            btn.style.boxShadow = (btn.classList.contains('o-btn') ? '10px 10px 0px #000' : '10px 10px 0px #000');
+        });
+        if (answer === 'O') {
+            document.querySelector('.o-btn').style.borderColor = '#ffea00';
+            document.querySelector('.o-btn').style.boxShadow = '10px 10px 0px #ffea00';
+        } else if (answer === 'X') {
+            document.querySelector('.x-btn').style.borderColor = '#ffea00';
+            document.querySelector('.x-btn').style.boxShadow = '10px 10px 0px #ffea00';
+        }
+    }
+    
+    function updateComboDisplay() {
+        const comboIndicator = document.getElementById('combo-indicator');
+        const comboCount = document.getElementById('combo-count');
+        
+        if (currentUser && currentUser.combo > 1) { 
+            comboCount.textContent = currentUser.combo;
+            comboIndicator.classList.remove('hidden');
+        } else {
+            comboIndicator.classList.add('hidden');
+        }
+    }
+
+
+    // ----------------------------------------------------------------------
+    // 6. Teacher Logic (Firebase Write Operations)
+    // ----------------------------------------------------------------------
+
+    // [MODIFIED] 선생님 뷰 업데이트
+    function updateTeacherView() {
+        const state = currentGameState;
+        document.getElementById('question-index').innerText = state.questionIndex;
+        
+        if (state.isActive) {
+            document.getElementById('teacher-preparation').classList.add('hidden');
+            document.getElementById('teacher-live-quiz').classList.remove('hidden');
+            document.getElementById('current-question').innerText = `[#${state.questionIndex}] ${state.currentQuestion.text}`;
+
+            // 타이머 재시작 (동기화)
+            const remainingTime = Math.max(0, state.currentQuestion.timer - Math.floor((Date.now() - state.answerTime) / 1000));
+            startTimer(remainingTime, 'teacher');
+            
+        } else {
+            document.getElementById('teacher-preparation').classList.remove('hidden');
+            document.getElementById('teacher-live-quiz').classList.add('hidden');
+        }
+    }
+
+    // [MODIFIED] Firebase에 문제 출제 데이터 업데이트
+    async function sendQuestion() {
+        const comboThreshold = parseInt(document.getElementById('combo-life-threshold').value) || 5;
+        const text = document.getElementById('question-input').value;
+        const timer = parseInt(document.getElementById('timer-select').value);
+        const answer = document.getElementById('correct-answer').value;
+
+        if (!text) {
+            alert('문제를 입력해야 출제할 수 있어요!');
+            return;
+        }
+        
+        // 이전 퀴즈가 진행 중이었다면 결과를 먼저 처리
+        if (currentGameState.isActive && timerInterval) {
+            clearInterval(timerInterval);
+            await processResults(); 
+        }
+
+        const newQuestionIndex = currentGameState.questionIndex + 1;
+        
+        // 학생들의 답변 상태 초기화 (answered 필드만)
+        const updates = {};
+        studentList.forEach(student => {
+            if (student.lives > 0) {
+                 updates[student.id + '/answered'] = null;
+            }
+        });
+        await studentRef.update(updates);
+
+        // 새로운 게임 상태 (isActive: true)를 Firebase에 업데이트
+        await stateRef.set({
+            questionIndex: newQuestionIndex,
+            currentQuestion: { text, timer, answer },
+            isActive: true,
+            showResult: false,
+            answerTime: Date.now(), // 현재 시간을 기록하여 동기화
+            comboThreshold: comboThreshold
+        });
+    }
+
+    // [MODIFIED] Firebase에서 모든 게임 데이터 삭제 (초기화)
+    function resetGameData() {
+        const confirmReset = confirm('🚨 경고: 현재 저장된 모든 학생 정보와 게임 기록을 삭제하시겠습니까?');
+        if (confirmReset) {
+            gameRef.remove()
+                .then(() => {
+                    alert('✅ 게임 데이터가 성공적으로 초기화되었습니다. 페이지를 새로고침합니다.');
+                    location.reload(); 
+                })
+                .catch(error => {
+                    alert('❌ 데이터 초기화 중 오류 발생: ' + error.message);
+                });
+        }
+    }
+
+    // ----------------------------------------------------------------------
+    // 7. Core Game Logic (Results Processing)
+    // ----------------------------------------------------------------------
+
+    // [MODIFIED] 최종 결과 처리 및 Firebase 상태 업데이트
+    async function processResults(isForced = false) {
+        // 이미 결과 처리가 완료되었거나, 게임이 비활성화 상태면 중지
+        if (currentGameState.showResult || !currentGameState.isActive) return;
+        
+        clearInterval(timerInterval);
+        
+        const correctAnswer = currentGameState.currentQuestion.answer;
+        const comboThreshold = currentGameState.comboThreshold;
+        
+        const studentUpdates = {};
+        let isCurrentUserCorrect = false;
+        let isLifeGained = false;
+
+        studentList.forEach(student => {
+            if (student.lives > 0) { 
+                if (student.answered === correctAnswer && !isForced) {
+                    // 정답 처리: 콤보 증가, 목숨 보너스
+                    student.combo = (student.combo || 0) + 1;
+                    
+                    if (comboThreshold > 0 && (student.combo % comboThreshold === 0)) {
+                         student.lives++; 
+                         if (student.id === currentUser?.id) isLifeGained = true;
+                    }
+                    
+                    if (student.id === currentUser?.id) isCurrentUserCorrect = true;
+                } else {
+                    // 오답 또는 무응답 처리: 목숨 차감, 콤보 초기화
+                    student.lives--;
+                    student.combo = 0;
+                }
+                
+                // 업데이트할 학생 정보 기록
+                studentUpdates[student.id] = {
+                    lives: student.lives,
+                    combo: student.combo,
+                    answered: student.answered
+                };
+            }
+        });
+
+        // 1. Firebase에 학생 목록 업데이트
+        await studentRef.update(studentUpdates);
+
+        // 2. Firebase에 결과 화면 전환 상태 업데이트
+        await stateRef.update({
+            isActive: false,
+            showResult: true,
+            isCurrentUserCorrect: isCurrentUserCorrect, // 학생 뷰 피드백용
+            isLifeGained: isLifeGained // 학생 뷰 피드백용
+        });
+        
+        // 3초 후 다음 문제 대기 상태로 자동 전환 (선생님 뷰에서만 실행)
+        if (!document.getElementById('teacher-view').classList.contains('hidden')) {
+            setTimeout(() => {
+                stateRef.update({ showResult: false }); // 결과 화면 종료
+            }, 3000);
+        }
+    }
+
+    // [MODIFIED] 결과 화면 표시 (DB 상태를 읽어와서 표시)
+    function showResultScreen(isCorrect, isLifeGained, question) { 
+        const resultScreen = document.getElementById('result-screen');
+        const resultEmoji = document.getElementById('result-emoji');
+        const resultMessage = document.getElementById('result-message');
+        
+        // UI 변경 전에 대기/정답 뷰 숨기기
+        document.querySelectorAll('.quiz-state').forEach(el => el.classList.add('hidden'));
+        document.getElementById('student-result').classList.remove('hidden');
+
+        if (isCorrect) {
+            resultScreen.className = 'correct-result';
+            resultEmoji.textContent = '🎉';
+            let msg = `<span style="color: #fff; font-size: 2em;">정답!</span>`;
+            
+            if (isLifeGained) {
+                 msg += `<br><span style="color: #ffea00; font-size: 1.5em;">⭐목숨 +1 보너스! (${currentGameState.comboThreshold}콤보)</span>`;
+            }
+            resultMessage.innerHTML = msg;
+            playSound(523, 0.2);
+            playSound(659, 0.2);
+        } else {
+            resultScreen.className = 'wrong-result';
+            resultEmoji.textContent = '💥';
+            resultMessage.innerHTML = `<span style="color: #fff; font-size: 2em;">틀렸어요! 정답은 [${question.answer}]</span>`;
+            playSound(200, 0.3);
+        }
+    }
+    
+    // [MODIFIED] 학생 답변 현황 업데이트 (리스너를 통해 자동으로 호출됨)
+    function updateQuizAreaViews() {
+        const oStudents = studentList.filter(s => s.lives > 0 && s.answered === 'O');
+        const xStudents = studentList.filter(s => s.lives > 0 && s.answered === 'X');
+        
+        // 선생님 뷰 업데이트
+        updateQuizArea(document.getElementById('o-answers'), oStudents);
+        updateQuizArea(document.getElementById('x-answers'), xStudents);
+        document.getElementById('o-count').innerText = oStudents.length;
+        document.getElementById('x-count').innerText = xStudents.length;
+        
+        // 관전 모드 업데이트
+        if (currentUser && currentUser.lives <= 0) {
+            updateQuizArea(document.getElementById('o-answers-spectator'), oStudents);
+            updateQuizArea(document.getElementById('x-answers-spectator'), xStudents);
+            document.querySelector('.o-count-spectator').innerText = oStudents.length;
+            document.querySelector('.x-count-spectator').innerText = xStudents.length;
+        }
+    }
+
+    // (Helper: 아바타 애니메이션 로직은 그대로 유지)
+    function updateQuizArea(container, students) { /* ... */
+        const existingAvatars = Array.from(container.querySelectorAll('.student-avatar'));
+        const existingAvatarMap = new Map(existingAvatars.map(el => [el.dataset.id, el]));
+        const studentIdsInContainer = new Set(students.map(s => s.id));
+
+        existingAvatars.forEach(avatar => {
+            if (!studentIdsInContainer.has(avatar.dataset.id)) {
+                avatar.style.opacity = '0';
+                avatar.style.transform = 'scale(0)';
+                setTimeout(() => avatar.remove(), 500); 
+            }
+        });
+
+        students.forEach(student => {
+            let avatar = existingAvatarMap.get(student.id);
+            if (!avatar) {
+                avatar = document.createElement('div');
+                avatar.className = `student-avatar`;
+                avatar.dataset.id = student.id;
+                avatar.innerHTML = `${student.emoji} ${student.nickname.split(' ')[0]}`;
+                container.appendChild(avatar);
+                setTimeout(() => {
+                    avatar.style.opacity = '1';
+                    avatar.style.transform = 'scale(1)';
+                }, 10);
+            } else {
+                container.appendChild(avatar); 
+                avatar.innerHTML = `${student.emoji} ${student.nickname.split(' ')[0]}`; 
+                avatar.classList.toggle('spectator-mode', student.lives <= 0);
+            }
+        });
+    }
+
+    // ----------------------------------------------------------------------
+    // 8. Timer & End Game Logic
+    // ----------------------------------------------------------------------
+
+    function startTimer(seconds, role) {
+        if (timerInterval) clearInterval(timerInterval);
+
+        let timeLeft = seconds;
+        const timerElement = (role === 'teacher') ? document.getElementById('timer-value') : document.getElementById('student-timer-value');
+        
+        timerElement.innerText = timeLeft;
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timerElement.innerText = timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                if (role === 'teacher') {
+                    // 타이머 종료 시 결과 처리 요청
+                    processResults(); 
+                }
+            }
+        }, 1000);
+    }
+    
+    // [MODIFIED] 강제 종료 시 결과 처리 및 최종 순위 표시
+    function endGame() {
+        // 결과를 처리하고 isActive를 false로 업데이트
+        processResults(true); 
+        
+        let survivingStudents = studentList.filter(s => s.lives > 0);
+        
+        let rankingMessage = '';
+
+        if (survivingStudents.length > 0) {
+            survivingStudents.sort((a, b) => b.combo - a.combo);
+            
+            const topStudent = survivingStudents[0];
+            let winnerMessage = `🏆 MVP (최고 콤보): ${topStudent.emoji} ${topStudent.nickname} (${topStudent.combo} 콤보)`;
+            
+            rankingMessage = survivingStudents.slice(0, 5).map((s, i) => 
+                `${i+1}위: ${s.emoji} ${s.nickname} (최대 콤보: ${s.combo})`
+            ).join('\n');
+
+            alert(`🎉 게임 종료!\n\n${winnerMessage}\n\n📊 최종 순위:\n${rankingMessage}`);
+        } else {
+            alert(`😢 아쉽지만 생존자가 없습니다. 게임 종료!`);
+        }
+
+        // 게임 상태를 초기화(대기 모드)
+        stateRef.update({ isActive: false, showResult: false });
+        
+        // 학생 뷰 업데이트는 리스너가 처리
+    }
+    
+    // (Helper: Sound)
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(frequency, duration) {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.frequency.value = frequency;
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + duration);
+    }
+</script>
+
+</body>
+</html>
