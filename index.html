@@ -578,14 +578,16 @@
         }
 
         /* ---------------------- 5. Student Info / Combo ---------------------- */
-        #student-lives {
-            font-size: 1.1rem;
-            margin-bottom: 4px;
+        #student-stars {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #f57c00;
         }
 
-        #life-rule-info {
+        #star-rule-info {
             font-size: 0.9rem;
-            color: #ff6f00;
+            color: #1565c0;
             margin-bottom: 4px;
         }
 
@@ -630,12 +632,133 @@
             font-size: 1.2rem;
         }
 
-        /* 타이머 */
+        /* ---------------------- 타이머 (개선) ---------------------- */
         #timer-display,
         #student-timer-display {
-            font-size: 1rem;
-            margin-bottom: 8px;
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 16px 0;
+            padding: 16px 24px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border: 3px solid #42a5f5;
+            display: inline-block;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            animation: timerPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes timerPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        #timer-display.urgent,
+        #student-timer-display.urgent {
+            background: linear-gradient(135deg, #ffebee, #ef9a9a);
+            border-color: #f44336;
+            animation: timerUrgent 0.5s ease-in-out infinite;
+            box-shadow: 0 0 30px rgba(244, 67, 54, 0.5);
+        }
+
+        @keyframes timerUrgent {
+            0%, 100% {
+                transform: scale(1) rotate(-1deg);
+            }
+            50% {
+                transform: scale(1.1) rotate(1deg);
+            }
+        }
+
+        #timer-display.warning,
+        #student-timer-display.warning {
+            background: linear-gradient(135deg, #fff3e0, #ffcc80);
+            border-color: #ff9800;
+            animation: timerWarning 0.7s ease-in-out infinite;
+        }
+
+        @keyframes timerWarning {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.07);
+            }
+        }
+
+        .timer-icon {
+            display: inline-block;
+            font-size: 2.5rem;
+            margin-right: 12px;
+            animation: timerTick 1s steps(1) infinite;
+        }
+
+        @keyframes timerTick {
+            0%, 50% {
+                content: '⏰';
+            }
+            50%, 100% {
+                content: '⏱️';
+            }
+        }
+
+        .timer-icon.urgent {
+            animation: timerShake 0.3s ease-in-out infinite;
+        }
+
+        @keyframes timerShake {
+            0%, 100% {
+                transform: translateX(0) rotate(0deg);
+            }
+            25% {
+                transform: translateX(-5px) rotate(-5deg);
+            }
+            75% {
+                transform: translateX(5px) rotate(5deg);
+            }
+        }
+
+        #timer-value,
+        #student-timer-value {
+            font-size: 4rem;
+            font-weight: 900;
             color: #1565c0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            display: inline-block;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        #timer-display.urgent #timer-value,
+        #student-timer-display.urgent #student-timer-value {
+            color: #d32f2f;
+            animation: numberBounce 0.5s ease-in-out infinite;
+        }
+
+        @keyframes numberBounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        #timer-display.warning #timer-value,
+        #student-timer-display.warning #student-timer-value {
+            color: #f57c00;
+        }
+
+        .timer-label {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #546e7a;
+            display: block;
+            margin-bottom: 4px;
         }
 
         /* ---------------------- 6. Teacher panels ---------------------- */
@@ -849,6 +972,17 @@
             .format-table {
                 font-size: 0.85rem;
             }
+
+            #timer-value,
+            #student-timer-value {
+                font-size: 3rem;
+            }
+
+            #timer-display,
+            #student-timer-display {
+                font-size: 2rem;
+                padding: 12px 16px;
+            }
         }
     </style>
 </head>
@@ -954,14 +1088,9 @@
 
             <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:4px;">
                 <div style="flex:1; min-width:0;">
-                    <label for="initial-hearts">초기 하트</label>
-                    <input type="number" id="initial-hearts" value="3" min="1" max="10"
-                           placeholder="예: 3 → 시작 하트 3개">
-                </div>
-                <div style="flex:1; min-width:0;">
-                    <label for="combo-life-threshold">추가 하트 획득 콤보</label>
-                    <input type="number" id="combo-life-threshold" value="5" min="2" max="10"
-                           placeholder="예: 5 → 5문제 연속 정답 시 하트 +1">
+                    <label for="combo-star-threshold">보너스 별 획득 콤보</label>
+                    <input type="number" id="combo-star-threshold" value="5" min="2" max="10"
+                           placeholder="예: 5 → 5문제 연속 정답 시 별 +1">
                 </div>
             </div>
 
@@ -975,7 +1104,15 @@
         <!-- 라이브 퀴즈 영역 -->
         <div id="teacher-live-quiz" class="hidden">
             <h4>🚨 LIVE 퀴즈: <span id="current-question"></span></h4>
-            <div id="timer-display">TIME: <span id="timer-value">10</span></div>
+            
+            <div id="timer-display" class="centered">
+                <span class="timer-label">⏱️ 남은 시간</span>
+                <div>
+                    <span class="timer-icon">⏰</span>
+                    <span id="timer-value">10</span>
+                    <span style="font-size: 2rem; font-weight: 600; color: #546e7a;">초</span>
+                </div>
+            </div>
 
             <div class="quiz-field-container">
                 <div id="unanswered-area">
@@ -1014,39 +1151,39 @@
     </div>
 
     <!-- 학생 로그인 -->
-   <div id="student-login" class="hidden centered">
-    <h3>👤 내 아바타 만들기</h3>
-    <label for="student-nickname">닉네임</label>
-    <input type="text" id="student-nickname" placeholder="예) 수학왕, 퀴즈마스터, 천재7번 등">
+    <div id="student-login" class="hidden centered">
+        <h3>👤 내 아바타 만들기</h3>
+        <label for="student-nickname">닉네임</label>
+        <input type="text" id="student-nickname" placeholder="예) 수학왕, 퀴즈마스터, 천재7번 등">
 
-    <label for="emoji-select">나를 표현하는 과일</label>
-    <select id="emoji-select" style="max-width: 220px;">
-        <option value="🍎">🍎 빨간 사과</option>
-        <option value="🍊">🍊 주황 귤</option>
-        <option value="🍋">🍋 노란 레몬</option>
-        <option value="🍌">🍌 바나나</option>
-        <option value="🍉">🍉 수박</option>
-        <option value="🍇">🍇 포도</option>
-        <option value="🍓">🍓 딸기</option>
-        <option value="🍑">🍑 복숭아</option>
-        <option value="🍍">🍍 파인애플</option>
-        <option value="🥝">🥝 키위</option>
-        <option value="🍒">🍒 체리</option>
-        <option value="🥭">🥭 망고</option>
-    </select>
+        <label for="emoji-select">나를 표현하는 과일</label>
+        <select id="emoji-select" style="max-width: 220px;">
+            <option value="🍎">🍎 빨간 사과</option>
+            <option value="🍊">🍊 주황 귤</option>
+            <option value="🍋">🍋 노란 레몬</option>
+            <option value="🍌">🍌 바나나</option>
+            <option value="🍉">🍉 수박</option>
+            <option value="🍇">🍇 포도</option>
+            <option value="🍓">🍓 딸기</option>
+            <option value="🍑">🍑 복숭아</option>
+            <option value="🍍">🍍 파인애플</option>
+            <option value="🥝">🥝 키위</option>
+            <option value="🍒">🍒 체리</option>
+            <option value="🥭">🥭 망고</option>
+        </select>
 
-    <div style="margin-top: 14px;">
-        <button class="block-button yellow-button" onclick="loginStudent()">▶️ 퀴즈방 입장</button>
-        <button class="block-button red-button" onclick="backToHome()">뒤로가기</button>
+        <div style="margin-top: 14px;">
+            <button class="block-button yellow-button" onclick="loginStudent()">▶️ 퀴즈방 입장</button>
+            <button class="block-button red-button" onclick="backToHome()">뒤로가기</button>
+        </div>
     </div>
-</div>
 
     <!-- 학생 화면 -->
     <div id="student-view" class="hidden">
         <h3 id="student-info" class="centered"></h3>
         <div class="centered">
-            <p id="student-lives"></p>
-            <div id="life-rule-info" class="hidden"></div>
+            <p id="student-stars"></p>
+            <div id="star-rule-info" class="hidden"></div>
             <div id="combo-indicator" class="combo-display hidden">
                 🔥 <span id="combo-count">0</span> COMBO!
             </div>
@@ -1074,7 +1211,15 @@
         <!-- 문제 풀이 화면 -->
         <div id="student-answering" class="quiz-state hidden centered">
             <h4 id="question-text" style="font-size:1.5rem; border-bottom:3px solid #fbc02d; padding-bottom:6px;"></h4>
-            <div id="student-timer-display">TIME: <span id="student-timer-value">10</span></div>
+            
+            <div id="student-timer-display" class="centered">
+                <span class="timer-label">⏱️ 남은 시간</span>
+                <div>
+                    <span class="timer-icon">⏰</span>
+                    <span id="student-timer-value">10</span>
+                    <span style="font-size: 2rem; font-weight: 600; color: #546e7a;">초</span>
+                </div>
+            </div>
 
             <h4 style="margin-top: 8px; margin-bottom: 10px; font-size:1.0rem; color:#455a64;">
                 아래 O / X 운동장을 눌러서 정답을 고르세요!
@@ -1257,7 +1402,6 @@
     // 2. 전역 변수
     // ----------------------------------------------------------------------
     const TEACHER_PASSWORD = 'teacher1234';
-    let INITIAL_LIVES = 3;
 
     let currentUser = null;
     let isTeacherMode = false;
@@ -1268,7 +1412,7 @@
     let resultsList = [];
     let timerInterval = null;
 
-    let lastUserLives = null;
+    let lastUserStars = null;
     let lastUserCombo = null;
     let lastResultQuestionIndex = 0;
 
@@ -1323,7 +1467,6 @@
                 return;
             }
 
-            // Firebase에 문제들 추가
             let successCount = 0;
             let errorCount = 0;
 
@@ -1343,7 +1486,6 @@
                 alert('❌ 문제 등록에 실패했습니다.');
             }
 
-            // 파일 입력 초기화
             event.target.value = '';
             fileNameDisplay.classList.add('hidden');
 
@@ -1364,11 +1506,9 @@
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
                     
-                    // 첫 번째 시트 읽기
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
                     
-                    // JSON으로 변환
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
                     resolve(jsonData);
                 } catch (error) {
@@ -1392,11 +1532,9 @@
             return questions;
         }
 
-        // 헤더 행 검증 (첫 번째 행)
         const headers = data[0].map(h => String(h).trim());
         console.log('헤더:', headers);
 
-        // 헤더 검증 (대소문자 구분 없이)
         const requiredHeaders = ['문제', '정답', '설명', '제한시간'];
         const headerLower = headers.map(h => h.toLowerCase());
         const hasValidHeaders = requiredHeaders.every(required => 
@@ -1408,17 +1546,14 @@
             return questions;
         }
 
-        // 헤더 인덱스 찾기
         const questionIdx = headerLower.findIndex(h => h === '문제');
         const answerIdx = headerLower.findIndex(h => h === '정답');
         const explanationIdx = headerLower.findIndex(h => h === '설명');
         const timerIdx = headerLower.findIndex(h => h === '제한시간');
 
-        // 데이터 행 처리 (두 번째 행부터)
         for (let i = 1; i < data.length; i++) {
             const row = data[i];
             
-            // 빈 행 스킵
             if (!row || row.length === 0 || !row[questionIdx]) {
                 continue;
             }
@@ -1428,7 +1563,6 @@
             const explanation = String(row[explanationIdx] || '').trim();
             const timer = parseInt(row[timerIdx]);
 
-            // 유효성 검사
             if (!questionText) {
                 console.warn(`행 ${i + 1}: 문제가 비어있습니다.`);
                 continue;
@@ -1444,14 +1578,12 @@
                 continue;
             }
 
-            // 문제 객체 생성
             const question = {
                 text: questionText,
                 answer: answer,
                 timer: timer
             };
 
-            // 설명이 있으면 추가
             if (explanation) {
                 question.explanation = explanation;
             }
@@ -1518,11 +1650,11 @@
         isTeacherMode = false;
         hideAll();
         document.getElementById('student-view').classList.remove('hidden');
-        updateLifeRuleInfo(currentGameState.comboThreshold || 0);
+        updateStarRuleInfo(currentGameState.comboThreshold || 0);
     }
 
-    function updateLifeRuleInfo(threshold) {
-        const infoElement = document.getElementById('life-rule-info');
+    function updateStarRuleInfo(threshold) {
+        const infoElement = document.getElementById('star-rule-info');
         if (!infoElement) return;
 
         if (!currentGameState.isGameStarted) {
@@ -1531,14 +1663,13 @@
         }
 
         if (threshold > 0) {
-            infoElement.innerHTML = `⚠️ 규칙: <b>${threshold}문제 연속 정답</b> 시 ❤️ 하트가 1개 늘어나요!`;
+            infoElement.innerHTML = `💡 보너스: <b>${threshold}문제 연속 정답</b> 시 ⭐ 별이 1개 더 늘어나요!`;
             infoElement.classList.remove('hidden');
         } else {
             infoElement.classList.add('hidden');
         }
     }
 
-    // 비밀번호 Enter 키
     const teacherPwInput = document.getElementById('teacher-password');
     if (teacherPwInput) {
         teacherPwInput.addEventListener('keydown', function (e) {
@@ -1548,7 +1679,6 @@
         });
     }
 
-    // 학생 O/X 영역 클릭 → 정답 제출
     const oAreaSpec = document.getElementById('o-area-spectator');
     const xAreaSpec = document.getElementById('x-area-spectator');
     if (oAreaSpec) {
@@ -1556,18 +1686,6 @@
     }
     if (xAreaSpec) {
         xAreaSpec.addEventListener('click', () => submitAnswer('X'));
-    }
-
-    // 초기 하트 변경 시 상태 반영
-    const initialHeartsInputEl = document.getElementById('initial-hearts');
-    if (initialHeartsInputEl) {
-        initialHeartsInputEl.addEventListener('change', function () {
-            let val = parseInt(this.value);
-            if (isNaN(val) || val < 1) val = 1;
-            this.value = val;
-            INITIAL_LIVES = val;
-            stateRef.update({ initialHearts: val });
-        });
     }
 
     // ----------------------------------------------------------------------
@@ -1581,22 +1699,10 @@
             showResult: false,
             isGameStarted: false,
             preGameExplain: false,
-            initialHearts: INITIAL_LIVES,
             gameFinished: false
         };
 
-        if (!currentGameState.initialHearts) {
-            currentGameState.initialHearts = INITIAL_LIVES;
-        }
-
-        const initInput = document.getElementById('initial-hearts');
-        if (initInput) {
-            const val = currentGameState.initialHearts || INITIAL_LIVES;
-            initInput.value = val;
-            INITIAL_LIVES = val;
-        }
-
-        updateLifeRuleInfo(currentGameState.comboThreshold || 0);
+        updateStarRuleInfo(currentGameState.comboThreshold || 0);
 
         if (currentGameState.resetToHome && currentGameState.resetToHome !== lastResetToHome) {
             lastResetToHome = currentGameState.resetToHome;
@@ -1623,10 +1729,8 @@
             if ((isTeacherMode && teacherViewOpen) ||
                 (!isTeacherMode && currentUser && studentViewOpen)) {
 
-                const alive = studentList
-                    .filter(s => s.lives > 0)
-                    .sort((a, b) => (b.combo || 0) - (a.combo || 0));
-                showFinalRankingScreen(alive);
+                const allStudents = studentList.sort((a, b) => (b.stars || 0) - (a.stars || 0));
+                showFinalRankingScreen(allStudents);
             }
         }
     });
@@ -1639,19 +1743,19 @@
         updateStudentListUI();
 
         if (currentUser) {
-            const prevLives = currentUser.lives;
+            const prevStars = currentUser.stars;
             const prevCombo = currentUser.combo;
             const updatedUser = studentList.find(s => s.id === currentUser.id);
             if (updatedUser) {
-                lastUserLives = prevLives;
+                lastUserStars = prevStars;
                 lastUserCombo = prevCombo;
                 currentUser = updatedUser;
-                const livesEl = document.getElementById('student-lives');
-                if (livesEl) {
+                const starsEl = document.getElementById('student-stars');
+                if (starsEl) {
                     if (currentGameState && currentGameState.isGameStarted) {
-                        livesEl.innerText = `❤️ 하트: ${currentUser.lives}`;
+                        starsEl.innerText = `⭐ 별: ${currentUser.stars || 0}개`;
                     } else {
-                        livesEl.innerText = '';
+                        starsEl.innerText = '';
                     }
                 }
                 updateComboDisplay();
@@ -1665,10 +1769,8 @@
             if ((isTeacherMode && teacherViewOpen) ||
                 (!isTeacherMode && currentUser && studentViewOpen)) {
 
-                const alive = studentList
-                    .filter(s => s.lives > 0)
-                    .sort((a, b) => (b.combo || 0) - (a.combo || 0));
-                showFinalRankingScreen(alive);
+                const allStudents = studentList.sort((a, b) => (b.stars || 0) - (a.stars || 0));
+                showFinalRankingScreen(allStudents);
             }
         }
     });
@@ -1791,7 +1893,7 @@
             row.className = 'student-row';
 
             const infoSpan = document.createElement('span');
-            infoSpan.textContent = `${student.emoji} ${student.nickname}  (❤️ ${student.lives} | 🔥 ${student.combo || 0})`;
+            infoSpan.textContent = `${student.emoji} ${student.nickname}  (⭐ ${student.stars || 0} | 🔥 ${student.combo || 0})`;
 
             const delBtn = document.createElement('button');
             delBtn.className = 'delete-btn';
@@ -1830,11 +1932,7 @@
             await processResults(true);
         }
 
-        const comboThreshold = parseInt(document.getElementById('combo-life-threshold').value) || 5;
-
-        let initialHeartsVal = parseInt(document.getElementById('initial-hearts').value);
-        if (isNaN(initialHeartsVal) || initialHeartsVal < 1) initialHeartsVal = 1;
-        INITIAL_LIVES = initialHeartsVal;
+        const comboThreshold = parseInt(document.getElementById('combo-star-threshold').value) || 5;
 
         finalShown = false;
 
@@ -1855,14 +1953,13 @@
             preGameExplain: true,
             isGameStarted: true,
             comboThreshold: comboThreshold,
-            initialHearts: initialHeartsVal,
             gameFinished: false
         };
 
         const studentUpdates = {};
         studentList.forEach(student => {
             studentUpdates[student.id + '/answered'] = null;
-            studentUpdates[student.id + '/lives'] = initialHeartsVal;
+            studentUpdates[student.id + '/stars'] = 0;
             studentUpdates[student.id + '/combo'] = 0;
         });
         if (Object.keys(studentUpdates).length > 0) {
@@ -1895,13 +1992,16 @@
             return;
         }
 
+        if (currentGameState.isActive) {
+            await processResults(true);
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
         const nextProblem = problemPool[nextIndex - 1];
 
         const studentUpdates = {};
         studentList.forEach(student => {
-            if (student.lives > 0) {
-                studentUpdates[student.id + '/answered'] = null;
-            }
+            studentUpdates[student.id + '/answered'] = null;
         });
         await studentRef.update(studentUpdates);
 
@@ -1932,14 +2032,14 @@
         const prep = document.getElementById('teacher-preparation');
         const live = document.getElementById('teacher-live-quiz');
         const currentQuestionEl = document.getElementById('current-question');
-        const timerDisplayEl = document.getElementById('timer-display');
 
-        if (!prep || !live || !currentQuestionEl || !timerDisplayEl) return;
+        if (!prep || !live || !currentQuestionEl) return;
 
         if (state.isGameStarted && state.preGameExplain) {
             prep.classList.add('hidden');
             live.classList.remove('hidden');
-            timerDisplayEl.innerHTML = '';
+            const td = document.getElementById('timer-display');
+            if (td) td.style.display = 'none';
             currentQuestionEl.innerHTML =
                 `학생들에게 이번 게임 규칙을 안내하는 중입니다.<br>` +
                 `<button class="block-button green-button" style="margin-top:10px;" onclick="startFirstQuestion()">▶️ 첫 문제 출제하기</button>`;
@@ -1949,6 +2049,9 @@
         if (state.isGameStarted && state.isActive) {
             prep.classList.add('hidden');
             live.classList.remove('hidden');
+
+            const td = document.getElementById('timer-display');
+            if (td) td.style.display = 'inline-block';
 
             currentQuestionEl.innerText =
                 `[#${state.questionIndex}/${problemPool.length}] ${state.currentQuestion.text}`;
@@ -1960,6 +2063,9 @@
         else if (state.isGameStarted && !state.isActive && state.questionIndex <= problemPool.length && state.questionIndex > 0) {
             prep.classList.add('hidden');
             live.classList.remove('hidden');
+
+            const td = document.getElementById('timer-display');
+            if (td) td.style.display = 'none';
 
             if (state.questionIndex >= problemPool.length) {
                 currentQuestionEl.innerHTML =
@@ -2021,21 +2127,20 @@
 
         const studentUpdates = {};
         studentList.forEach(student => {
-            if (student.lives > 0) {
-                if (!isForced && student.answered === correctAnswer) {
-                    student.combo = (student.combo || 0) + 1;
-                    if (comboThreshold > 0 && student.combo % comboThreshold === 0) {
-                        student.lives++;
-                    }
-                } else if (!isForced) {
-                    student.lives--;
-                    if (student.lives < 0) student.lives = 0;
-                    student.combo = 0;
+            if (!isForced && student.answered === correctAnswer) {
+                student.stars = (student.stars || 0) + 1;
+                student.combo = (student.combo || 0) + 1;
+                
+                if (comboThreshold > 0 && student.combo % comboThreshold === 0) {
+                    student.stars++;
                 }
-                studentUpdates[`${student.id}/lives`] = student.lives;
-                studentUpdates[`${student.id}/combo`] = student.combo || 0;
-                studentUpdates[`${student.id}/answered`] = student.answered || null;
+            } else if (!isForced) {
+                student.combo = 0;
             }
+            
+            studentUpdates[`${student.id}/stars`] = student.stars || 0;
+            studentUpdates[`${student.id}/combo`] = student.combo || 0;
+            studentUpdates[`${student.id}/answered`] = student.answered || null;
         });
 
         await studentRef.update(studentUpdates);
@@ -2052,7 +2157,7 @@
         }
     }
 
-    function showResultScreen(isCorrect, isLifeGained, question) {
+    function showResultScreen(isCorrect, isStarGained, question) {
         const resultScreen = document.getElementById('result-screen');
         const resultEmoji = document.getElementById('result-emoji');
         const resultMessage = document.getElementById('result-message');
@@ -2076,9 +2181,10 @@
         if (isCorrect) {
             resultScreen.className = 'correct-result';
             resultEmoji.textContent = '🎉';
-            let msg = '<span style="font-size:1.4rem;">정답이에요! 너무 잘했어요 👏</span>';
-            if (isLifeGained) {
-                msg += '<br><span style="font-size:1.1rem;">⭐ 콤보로 하트가 1개 늘어났어요!</span>';
+            let msg = '<span style="font-size:1.4rem;">정답이에요! 너무 잘했어요 👏</span><br>';
+            msg += '<span style="font-size:1.1rem;">⭐ 별 +1개!</span>';
+            if (isStarGained) {
+                msg += '<br><span style="font-size:1.1rem;">🎁 콤보 보너스로 별이 1개 더 늘어났어요!</span>';
             }
             msg += explanationHtml;
             resultMessage.innerHTML = msg;
@@ -2088,14 +2194,15 @@
             resultScreen.className = 'wrong-result';
             resultEmoji.textContent = '💥';
             let msg =
-                `<span style="font-size:1.4rem;">아쉬워요! 정답은 [${question.answer}] 였어요.</span>`;
+                `<span style="font-size:1.4rem;">아쉬워요! 정답은 [${question.answer}] 였어요.</span><br>`;
+            msg += '<span style="font-size:1.0rem;">다음 문제에서 다시 도전해보세요!</span>';
             msg += explanationHtml;
             resultMessage.innerHTML = msg;
             playSound(200, 0.25);
         }
     }
 
-    function showFinalRankingScreen(alive) {
+    function showFinalRankingScreen(allStudents) {
         finalShown = true;
 
         hideAll();
@@ -2108,13 +2215,10 @@
             teacherBtn.style.display = isTeacherMode ? 'inline-block' : 'none';
         }
 
-        if (alive.length === 0) {
+        if (allStudents.length === 0) {
             container.innerHTML = `
                 <p style="font-size:1.1rem; color:#546e7a; margin-bottom:12px;">
-                    😢 아쉽지만 이번에는 생존자가 없습니다.
-                </p>
-                <p style="font-size:1rem; color:#607d8b;">
-                    다음에는 모두 같이 끝까지 도전해 볼까요?
+                    참가한 학생이 없습니다.
                 </p>
             `;
             return;
@@ -2123,17 +2227,17 @@
         const medalEmojis = ['🥇', '🥈', '🥉'];
         const rankLabels = ['1위', '2위', '3위'];
 
-        alive.sort((a, b) => (b.combo || 0) - (a.combo || 0));
+        allStudents.sort((a, b) => (b.stars || 0) - (a.stars || 0));
 
-        const uniqueCombos = [...new Set(alive.map(s => s.combo || 0))].sort((a, b) => b - a).slice(0, 3);
+        const uniqueStars = [...new Set(allStudents.map(s => s.stars || 0))].sort((a, b) => b - a).slice(0, 3);
 
-        const rankGroups = uniqueCombos.map((comboVal, idx) => {
-            const students = alive.filter(s => (s.combo || 0) === comboVal);
+        const rankGroups = uniqueStars.map((starVal, idx) => {
+            const students = allStudents.filter(s => (s.stars || 0) === starVal);
             return {
                 rank: idx + 1,
                 medal: medalEmojis[idx],
                 label: rankLabels[idx],
-                combo: comboVal,
+                stars: starVal,
                 students
             };
         });
@@ -2142,7 +2246,7 @@
         const mvpNames = mvpGroup.students
             .map(s => `${s.emoji} ${s.nickname}`)
             .join(', ');
-        const bestCombo = mvpGroup.combo;
+        const bestStars = mvpGroup.stars;
 
         let medalHtml = '';
         rankGroups.forEach(group => {
@@ -2154,7 +2258,7 @@
                             <div>
                                 <div class="medal-name">${s.emoji} ${s.nickname}</div>
                                 <div class="medal-stats">
-                                    ${group.label} · ❤️ ${s.lives} / 최대 콤보 🔥 ${s.combo || 0}
+                                    ${group.label} · ⭐ ${s.stars || 0}개 / 최대 콤보 🔥 ${s.combo || 0}
                                 </div>
                             </div>
                         </div>
@@ -2171,7 +2275,7 @@
                 <div class="mvp-title">오늘의 MVP</div>
                 <div class="mvp-name">🏆 ${mvpNames}</div>
                 <div style="margin-top:8px; font-size:0.95rem;">
-                    최대 콤보 🔥 ${bestCombo} 기준으로 공동 MVP가 될 수 있어요!
+                    총 ⭐ ${bestStars}개 획득으로 1등입니다! 축하합니다! 🎉
                 </div>
             </div>
         `;
@@ -2261,9 +2365,7 @@
             processResults(true);
         }
 
-        const alive = studentList
-            .filter(s => s.lives > 0)
-            .sort((a, b) => (b.combo || 0) - (a.combo || 0));
+        const allStudents = studentList.sort((a, b) => (b.stars || 0) - (a.stars || 0));
 
         stateRef.update({
             isActive: false,
@@ -2274,7 +2376,7 @@
         });
 
         if (!finalShown) {
-            showFinalRankingScreen(alive);
+            showFinalRankingScreen(allStudents);
         }
     }
 
@@ -2297,20 +2399,6 @@
         showTeacherView();
     }
 
-    async function backToStudentFromResult() {
-        if (currentUser) {
-            try {
-                await studentRef.child(currentUser.id).remove();
-            } catch (e) {
-                console.error(e);
-            }
-            currentUser = null;
-        }
-        finalShown = false;
-        hideAll();
-        document.getElementById('student-login').classList.remove('hidden');
-    }
-
     // ----------------------------------------------------------------------
     // 10. Student Logic
     // ----------------------------------------------------------------------
@@ -2329,28 +2417,26 @@
         const newRef = studentRef.push();
         const newId = newRef.key;
 
-        const baseHearts = currentGameState.initialHearts || INITIAL_LIVES;
-
         const studentData = {
             id: newId,
             nickname: nickname,
             emoji: emoji,
-            lives: baseHearts,
+            stars: 0,
             combo: 0,
             answered: null
         };
 
         await newRef.set(studentData);
         currentUser = studentData;
-        lastUserLives = baseHearts;
+        lastUserStars = 0;
         lastUserCombo = 0;
 
         const infoEl = document.getElementById('student-info');
         if (infoEl) {
             infoEl.innerText = `${emoji} ${nickname} 님, 환영합니다!`;
         }
-        const livesEl = document.getElementById('student-lives');
-        if (livesEl) livesEl.innerText = '';
+        const starsEl = document.getElementById('student-stars');
+        if (starsEl) starsEl.innerText = '';
 
         showStudentView();
     }
@@ -2387,16 +2473,15 @@
             if (ruleDiv) {
                 const main = document.getElementById('rule-text-main');
                 const sub = document.getElementById('rule-text-sub');
-                const baseHearts = state.initialHearts || INITIAL_LIVES;
                 const combo = state.comboThreshold || 0;
                 if (main) {
-                    main.innerText = `이번 게임은 ❤️ 하트 ${baseHearts}개로 시작합니다.`;
+                    main.innerText = `이번 게임은 정답을 맞추면 ⭐ 별이 늘어나요!`;
                 }
                 if (sub) {
                     if (combo > 0) {
-                        sub.innerText = `${combo}문제 연속 정답을 하면 ❤️ 하트가 1개씩 추가로 생겨요.`;
+                        sub.innerText = `${combo}문제 연속 정답을 하면 ⭐ 별이 1개 추가로 더 생겨요!`;
                     } else {
-                        sub.innerText = `이번 게임은 추가 하트 보너스 없이 진행됩니다.`;
+                        sub.innerText = `문제를 많이 맞출수록 더 높은 점수를 받을 수 있어요!`;
                     }
                 }
                 ruleDiv.classList.remove('hidden');
@@ -2424,9 +2509,9 @@
 
         if (state.showResult) {
             if (state.questionIndex !== lastResultQuestionIndex) {
-                const isCorrect = (currentUser.answered === state.currentQuestion.answer && currentUser.lives > 0);
-                const isLifeGained = (lastUserLives != null && currentUser.lives > lastUserLives);
-                showResultScreen(isCorrect, isLifeGained, state.currentQuestion);
+                const isCorrect = (currentUser.answered === state.currentQuestion.answer);
+                const isStarGained = (lastUserStars != null && currentUser.stars > lastUserStars + 1);
+                showResultScreen(isCorrect, isStarGained, state.currentQuestion);
                 lastResultQuestionIndex = state.questionIndex;
             } else {
                 waiting.classList.add('hidden');
@@ -2452,10 +2537,6 @@
         if (!currentUser) return;
         if (!currentGameState.isActive || !currentGameState.isGameStarted) {
             alert('지금은 답을 제출할 수 있는 시간이 아닙니다.');
-            return;
-        }
-        if (currentUser.lives <= 0) {
-            alert('이미 탈락했어요. 이제는 관전만 가능합니다.');
             return;
         }
 
@@ -2617,21 +2698,19 @@
 
         if (!unanswered || !oArea || !xArea || !unansweredSpec || !oSpec || !xSpec) return;
 
-        const aliveIds = new Set(
-            studentList.filter(s => s.lives > 0).map(s => s.id)
-        );
+        const allStudentIds = new Set(studentList.map(s => s.id));
 
         Object.keys(lastZoneMap).forEach(id => {
-            if (!aliveIds.has(id)) delete lastZoneMap[id];
+            if (!allStudentIds.has(id)) delete lastZoneMap[id];
         });
         Object.keys(lastZoneMapSpectator).forEach(id => {
-            if (!aliveIds.has(id)) delete lastZoneMapSpectator[id];
+            if (!allStudentIds.has(id)) delete lastZoneMapSpectator[id];
         });
 
         [unanswered, oArea, xArea, unansweredSpec, oSpec, xSpec].forEach(container => {
             Array.from(container.querySelectorAll('.student-avatar')).forEach(av => {
                 const sid = av.dataset.studentId;
-                if (sid && !aliveIds.has(sid)) {
+                if (sid && !allStudentIds.has(sid)) {
                     container.removeChild(av);
                 }
             });
@@ -2641,8 +2720,6 @@
         let xCount = 0;
 
         studentList.forEach(student => {
-            if (student.lives <= 0) return;
-
             let zone = 'out';
             if (student.answered === 'O') {
                 zone = 'O';
@@ -2672,7 +2749,7 @@
     }
 
     // ----------------------------------------------------------------------
-    // 12. Timer
+    // 12. Timer (개선된 버전)
     // ----------------------------------------------------------------------
     function startTimer(seconds, role) {
         if (timerInterval) {
@@ -2683,10 +2760,58 @@
         function updateDisplay() {
             if (role === 'teacher') {
                 const tv = document.getElementById('timer-value');
+                const td = document.getElementById('timer-display');
+                const icon = td ? td.querySelector('.timer-icon') : null;
+                
                 if (tv) tv.innerText = remaining;
+                
+                if (td) {
+                    // 3초 이하: 긴급 (빨강)
+                    if (remaining <= 3) {
+                        td.className = 'centered urgent';
+                        if (icon) icon.className = 'timer-icon urgent';
+                        if (remaining <= 3 && remaining > 0) {
+                            playSound(800, 0.1); // 째깍 소리
+                        }
+                    }
+                    // 5초 이하: 경고 (주황)
+                    else if (remaining <= 5) {
+                        td.className = 'centered warning';
+                        if (icon) icon.className = 'timer-icon';
+                    }
+                    // 정상 (파랑)
+                    else {
+                        td.className = 'centered';
+                        if (icon) icon.className = 'timer-icon';
+                    }
+                }
             } else if (role === 'student') {
                 const tv = document.getElementById('student-timer-value');
+                const td = document.getElementById('student-timer-display');
+                const icon = td ? td.querySelector('.timer-icon') : null;
+                
                 if (tv) tv.innerText = remaining;
+                
+                if (td) {
+                    // 3초 이하: 긴급 (빨강)
+                    if (remaining <= 3) {
+                        td.className = 'centered urgent';
+                        if (icon) icon.className = 'timer-icon urgent';
+                        if (remaining <= 3 && remaining > 0) {
+                            playSound(800, 0.1); // 째깍 소리
+                        }
+                    }
+                    // 5초 이하: 경고 (주황)
+                    else if (remaining <= 5) {
+                        td.className = 'centered warning';
+                        if (icon) icon.className = 'timer-icon';
+                    }
+                    // 정상 (파랑)
+                    else {
+                        td.className = 'centered';
+                        if (icon) icon.className = 'timer-icon';
+                    }
+                }
             }
         }
 
@@ -2709,6 +2834,7 @@
 
 </body>
 </html>
+
 
 
 
