@@ -247,42 +247,47 @@
             border: 2px solid #ef9a9a;
         }
 
-        .o-area::before,
-        .x-area::before {
+        /* 중앙 O / X 마크 */
+        .ox-mark {
             position: absolute;
-            top: 4px;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translate(-50%, -50%);
             font-size: 3.2rem;
             font-weight: 700;
-            color: rgba(0,0,0,0.12);
+            color: rgba(0,0,0,0.08);
             pointer-events: none;
-        }
-
-        .o-area::before {
-            content: 'O';
-        }
-
-        .x-area::before {
-            content: 'X';
-        }
-
-        .ox-field .o-area,
-        .ox-field .x-area {
-            cursor: pointer;
-        }
-
-        .count-badge {
-            font-size: 1.0rem;
-            margin-bottom: 4px;
-            color: #37474f;
-            width: 100%;
+            z-index: 0;
         }
 
         .answer-list {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* OX 선택 인원 수 뱃지 */
+        .count-badge {
+            position: absolute;
+            top: 8px;
+            left: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            font-size: 0.9rem;
+            color: #37474f;
+            z-index: 2;
+        }
+
+        .count-number {
+            font-weight: 700;
+            font-size: 1.1rem;
         }
 
         .student-avatar {
@@ -321,6 +326,11 @@
             left: 50%;
             width: 4px;
             background: rgba(255,255,255,0.7);
+        }
+
+        .ox-field .o-area,
+        .ox-field .x-area {
+            cursor: pointer;
         }
 
         /* ---------------------- 5. Student Info / Combo ---------------------- */
@@ -683,17 +693,23 @@
 
             <div class="quiz-field-container">
                 <div id="unanswered-area">
-                    <!-- 아바타만 표시 -->
+                    <!-- 아직 선택 안한 아바타 -->
                 </div>
                 <div class="ox-field">
                     <div class="ox-center-line"></div>
                     <div class="result-box">
                         <div class="o-area">
-                            <div class="count-badge"><span id="o-count">0</span>명</div>
+                            <div class="ox-mark">O</div>
+                            <div class="count-badge">
+                                👧👦 <span id="o-count" class="count-number">0</span>명
+                            </div>
                             <div id="o-answers" class="answer-list"></div>
                         </div>
                         <div class="x-area">
-                            <div class="count-badge"><span id="x-count">0</span>명</div>
+                            <div class="ox-mark">X</div>
+                            <div class="count-badge">
+                                👧👦 <span id="x-count" class="count-number">0</span>명
+                            </div>
                             <div id="x-answers" class="answer-list"></div>
                         </div>
                     </div>
@@ -701,6 +717,9 @@
             </div>
 
             <div class="centered" style="margin-top: 20px;">
+                <button class="block-button green-button" onclick="proceedToNextQuestion()">
+                    ⏭ 다음 문제
+                </button>
                 <button class="block-button red-button" onclick="endGame(false)">
                     🛑 그만하기 (현재까지 점수로 결과 발표)
                 </button>
@@ -710,7 +729,7 @@
 
     <!-- 학생 로그인 -->
     <div id="student-login" class="hidden centered">
-        <h3>👤 내 캐릭터 만들기</h3>
+        <h3>👤 내 아바타 만들기</h3>
         <label for="student-nickname">닉네임</label>
         <input type="text" id="student-nickname" placeholder="예) 수학왕, 귀염뽀짝7번 등">
 
@@ -741,18 +760,32 @@
         <h3 id="student-info" class="centered"></h3>
         <div class="centered">
             <p id="student-lives">❤️ 하트: 3</p>
-            <div id="life-rule-info"></div>
+            <div id="life-rule-info" class="hidden"></div>
             <div id="combo-indicator" class="combo-display hidden">
                 🔥 <span id="combo-count">0</span> COMBO!
             </div>
         </div>
 
+        <!-- 규칙 안내 화면 (게임 시작 직후) -->
+        <div id="student-rule" class="quiz-state hidden centered">
+            <div style="display:inline-block; padding:14px 18px; border-radius:20px; background:#fffde7; border:2px solid #ffeb3b; max-width:90%;">
+                <h4 style="margin-top:0; margin-bottom:8px;">🎮 이번 게임 규칙 안내</h4>
+                <p id="rule-text-main" style="margin:4px 0; font-size:1rem;"></p>
+                <p id="rule-text-sub" style="margin:4px 0; font-size:0.95rem; color:#5d4037;"></p>
+                <p style="margin:6px 0 0; font-size:0.9rem; color:#757575;">
+                    잠시 후 첫 번째 문제가 나옵니다. 준비해주세요!
+                </p>
+            </div>
+        </div>
+
+        <!-- 게임 시작 전 대기 화면 -->
         <div id="student-waiting" class="quiz-state centered">
             <h4 style="display:inline-block; padding:10px 16px; border-radius:20px; background:#e3f2fd; border:2px solid #90caf9;">
                 📢 선생님이 문제를 준비 중입니다. 잠시만 기다려주세요!
             </h4>
         </div>
 
+        <!-- 문제 풀이 화면 -->
         <div id="student-answering" class="quiz-state hidden centered">
             <h4 id="question-text" style="font-size:1.5rem; border-bottom:3px solid #fbc02d; padding-bottom:6px;"></h4>
             <div id="student-timer-display">TIME: <span id="student-timer-value">10</span></div>
@@ -763,17 +796,23 @@
 
             <div id="live-answer-spectator" class="quiz-field-container">
                 <div id="unanswered-area-spectator">
-                    <!-- 아바타만 표시 -->
+                    <!-- 아직 선택 안한 아바타 -->
                 </div>
                 <div class="ox-field">
                     <div class="ox-center-line"></div>
                     <div class="result-box">
                         <div class="o-area" id="o-area-spectator">
-                            <div class="count-badge"><span class="o-count-spectator">0</span>명</div>
+                            <div class="ox-mark">O</div>
+                            <div class="count-badge">
+                                👧👦 <span class="o-count-spectator count-number">0</span>명
+                            </div>
                             <div id="o-answers-spectator" class="answer-list"></div>
                         </div>
                         <div class="x-area" id="x-area-spectator">
-                            <div class="count-badge"><span class="x-count-spectator">0</span>명</div>
+                            <div class="ox-mark">X</div>
+                            <div class="count-badge">
+                                👧👦 <span class="x-count-spectator count-number">0</span>명
+                            </div>
                             <div id="x-answers-spectator" class="answer-list"></div>
                         </div>
                     </div>
@@ -781,6 +820,7 @@
             </div>
         </div>
 
+        <!-- 학생 결과 화면 -->
         <div id="student-result" class="quiz-state hidden centered">
             <div id="result-screen">
                 <div id="result-emoji">✨</div>
@@ -905,14 +945,19 @@
     function showStudentView() {
         hideAll();
         document.getElementById('student-view').classList.remove('hidden');
-        if (currentGameState.comboThreshold) {
-            updateLifeRuleInfo(currentGameState.comboThreshold);
-        }
+        updateLifeRuleInfo(currentGameState.comboThreshold || 0);
     }
 
     function updateLifeRuleInfo(threshold) {
         const infoElement = document.getElementById('life-rule-info');
         if (!infoElement) return;
+
+        // 게임이 시작되지 않았다면 규칙 안내 숨김
+        if (!currentGameState.isGameStarted) {
+            infoElement.classList.add('hidden');
+            return;
+        }
+
         if (threshold > 0) {
             infoElement.innerHTML = `⚠️ 규칙: <b>${threshold}문제 연속 정답</b> 시 ❤️ 하트가 1개 늘어나요!`;
             infoElement.classList.remove('hidden');
@@ -931,7 +976,7 @@
         });
     }
 
-    // 학생 O/X 영역 클릭
+    // 학생 O/X 영역 클릭 → 정답 제출
     const oAreaSpec = document.getElementById('o-area-spectator');
     const xAreaSpec = document.getElementById('x-area-spectator');
     if (oAreaSpec) {
@@ -963,6 +1008,7 @@
             comboThreshold: 5,
             showResult: false,
             isGameStarted: false,
+            preGameExplain: false,
             initialHearts: INITIAL_LIVES
         };
 
@@ -977,7 +1023,7 @@
             INITIAL_LIVES = val;
         }
 
-        updateLifeRuleInfo(currentGameState.comboThreshold);
+        updateLifeRuleInfo(currentGameState.comboThreshold || 0);
 
         if (!document.getElementById('teacher-view').classList.contains('hidden')) {
             updateTeacherView();
@@ -1156,6 +1202,9 @@
             .catch(error => alert('❌ 학생 전체 삭제 중 오류: ' + error.message));
     }
 
+    // ----------------------------------------------------------------------
+    // 6. 게임 시작 / 첫 문제 출제
+    // ----------------------------------------------------------------------
     async function startGameWithPool() {
         if (problemPool.length === 0) {
             alert('🚨 최소 1개 이상의 문제를 준비해야 합니다.');
@@ -1186,14 +1235,15 @@
                 answer: firstProblem.answer,
                 explanation: firstProblem.explanation || ''
             },
-            isActive: true,
+            isActive: false,          // 아직 문제 출제 전
             showResult: false,
-            answerTime: Date.now(),
-            comboThreshold: comboThreshold,
+            preGameExplain: true,     // 학생 규칙 안내 화면
             isGameStarted: true,
+            comboThreshold: comboThreshold,
             initialHearts: initialHeartsVal
         };
 
+        // 학생들의 answered 초기화
         const studentUpdates = {};
         studentList.forEach(student => {
             if (student.lives > 0) {
@@ -1203,12 +1253,29 @@
         await studentRef.update(studentUpdates);
 
         await stateRef.set(newGameState);
-        alert(`✅ 게임 시작! 총 ${problemPool.length}문제 중 1번 문제를 배포했습니다.`);
+        alert(`✅ 게임 설정 완료! 학생들에게 규칙을 보여준 뒤 첫 문제를 출제할 수 있습니다.`);
+    }
+
+    async function startFirstQuestion() {
+        if (!currentGameState.isGameStarted || currentGameState.questionIndex !== 1) return;
+        await stateRef.update({
+            isActive: true,
+            preGameExplain: false,
+            showResult: false,
+            answerTime: Date.now()
+        });
     }
 
     async function proceedToNextQuestion() {
+        // 아직 문제 출제 전(규칙 안내 중)이면 첫 문제 출제
+        if (currentGameState.isGameStarted && currentGameState.preGameExplain) {
+            await startFirstQuestion();
+            return;
+        }
+
         const nextIndex = currentGameState.questionIndex + 1;
         if (nextIndex > problemPool.length) {
+            // 마지막 문제 이후 → 자동 종료
             endGame(true);
             return;
         }
@@ -1234,6 +1301,7 @@
             },
             isActive: true,
             showResult: false,
+            preGameExplain: false,
             answerTime: Date.now()
         });
 
@@ -1241,47 +1309,65 @@
     }
 
     // ----------------------------------------------------------------------
-    // 6. Teacher View Logic
+    // 7. Teacher View Logic
     // ----------------------------------------------------------------------
     function updateTeacherView() {
         const state = currentGameState;
 
         const prep = document.getElementById('teacher-preparation');
         const live = document.getElementById('teacher-live-quiz');
+        const currentQuestionEl = document.getElementById('current-question');
+        const timerDisplayEl = document.getElementById('timer-display');
 
+        if (!prep || !live || !currentQuestionEl || !timerDisplayEl) return;
+
+        // 게임이 시작되었고, 규칙 안내 중일 때
+        if (state.isGameStarted && state.preGameExplain) {
+            prep.classList.add('hidden');
+            live.classList.remove('hidden');
+            timerDisplayEl.innerHTML = '규칙 안내 중';
+            currentQuestionEl.innerHTML =
+                `학생들에게 이번 게임 규칙을 안내하는 중입니다.<br>` +
+                `<button class="block-button green-button" style="margin-top:10px;" onclick="startFirstQuestion()">▶️ 첫 문제 출제하기</button>`;
+            return;
+        }
+
+        // 게임 진행 중(문제 출제 상태)
         if (state.isGameStarted && state.isActive) {
             prep.classList.add('hidden');
             live.classList.remove('hidden');
 
-            document.getElementById('current-question').innerText =
+            currentQuestionEl.innerText =
                 `[#${state.questionIndex}/${problemPool.length}] ${state.currentQuestion.text}`;
 
             const elapsedSec = Math.floor((Date.now() - state.answerTime) / 1000);
             const remaining = Math.max(0, state.currentQuestion.timer - elapsedSec);
             startTimer(remaining, 'teacher');
-
-        } else if (state.isGameStarted && !state.isActive && state.questionIndex <= problemPool.length && state.questionIndex > 0) {
+        }
+        // 문제는 모두 준비되었고, 현재 문제는 끝났을 때(다음 문제 대기)
+        else if (state.isGameStarted && !state.isActive && state.questionIndex <= problemPool.length && state.questionIndex > 0) {
             prep.classList.add('hidden');
             live.classList.remove('hidden');
 
-            if (!state.showResult) {
-                if (state.questionIndex >= problemPool.length) {
-                    endGame(true);
-                } else {
-                    document.getElementById('current-question').innerHTML =
-                        `<span style="color:#fbc02d;">다음 문제 준비 완료!</span><br>` +
-                        `<button class="block-button green-button" onclick="proceedToNextQuestion()">➡️ 다음 문제 (#${state.questionIndex + 1})</button>`;
-                }
+            // 마지막 문제까지 끝났다면, 잠시 후 자동 종료
+            if (state.questionIndex >= problemPool.length) {
+                currentQuestionEl.innerHTML =
+                    `<span style="color:#fbc02d;">준비한 문제가 모두 끝났습니다.</span><br>` +
+                    `<span style="font-size:0.95rem; color:#546e7a;">곧 최종 결과 화면으로 넘어갑니다.</span>`;
+            } else {
+                currentQuestionEl.innerHTML =
+                    `<span style="color:#fbc02d;">#${state.questionIndex}번 문제 결과를 확인한 뒤, 다음 문제를 출제하세요.</span>`;
             }
-
-        } else {
+        }
+        // 게임 전/끝 상태 → 관리 화면
+        else {
             prep.classList.remove('hidden');
             live.classList.add('hidden');
         }
     }
 
     // ----------------------------------------------------------------------
-    // 7. 결과 기록 저장 (문제별)
+    // 8. 결과 기록 저장 (문제별)
     // ----------------------------------------------------------------------
     function saveQuestionResult(isForced) {
         if (!currentGameState.currentQuestion) return;
@@ -1311,7 +1397,7 @@
     }
 
     // ----------------------------------------------------------------------
-    // 8. Core Game Logic (결과 처리 / 종료)
+    // 9. Core Game Logic (결과 처리 / 종료)
     // ----------------------------------------------------------------------
     async function processResults(isForced) {
         if (currentGameState.showResult || !currentGameState.isActive) return;
@@ -1350,6 +1436,7 @@
             showResult: true
         });
 
+        // 마지막 문제이면 자동으로 종료 화면으로
         if (!isForced && currentGameState.questionIndex >= problemPool.length) {
             setTimeout(() => {
                 endGame(true);
@@ -1365,9 +1452,11 @@
         const waiting = document.getElementById('student-waiting');
         const answering = document.getElementById('student-answering');
         const result = document.getElementById('student-result');
+        const ruleDiv = document.getElementById('student-rule');
 
         waiting.classList.add('hidden');
         answering.classList.add('hidden');
+        if (ruleDiv) ruleDiv.classList.add('hidden');
         result.classList.remove('hidden');
 
         const explanationHtml = question.explanation
@@ -1565,6 +1654,7 @@
             isActive: false,
             showResult: false,
             isGameStarted: false,
+            preGameExplain: false,
             questionIndex: 0
         });
 
@@ -1590,7 +1680,7 @@
     }
 
     // ----------------------------------------------------------------------
-    // 9. Student Logic
+    // 10. Student Logic
     // ----------------------------------------------------------------------
     async function loginStudent() {
         const nicknameInput = document.getElementById('student-nickname');
@@ -1639,16 +1729,46 @@
         const waiting = document.getElementById('student-waiting');
         const answering = document.getElementById('student-answering');
         const result = document.getElementById('student-result');
+        const ruleDiv = document.getElementById('student-rule');
 
         // 1) 게임 시작 전
         if (!state.isGameStarted || !state.questionIndex || state.questionIndex === 0) {
+            if (ruleDiv) ruleDiv.classList.add('hidden');
             waiting.classList.remove('hidden');
             answering.classList.add('hidden');
             result.classList.add('hidden');
             return;
         }
 
-        // 2) 문제 진행 중
+        // 2) 규칙 안내 단계
+        if (state.preGameExplain) {
+            waiting.classList.add('hidden');
+            answering.classList.add('hidden');
+            result.classList.add('hidden');
+            if (ruleDiv) {
+                const main = document.getElementById('rule-text-main');
+                const sub = document.getElementById('rule-text-sub');
+                const baseHearts = state.initialHearts || INITIAL_LIVES;
+                const combo = state.comboThreshold || 0;
+                if (main) {
+                    main.innerText = `이번 게임은 ❤️ 하트 ${baseHearts}개로 시작합니다.`;
+                }
+                if (sub) {
+                    if (combo > 0) {
+                        sub.innerText = `${combo}문제 연속 정답을 하면 ❤️ 하트가 1개씩 추가로 생겨요.`;
+                    } else {
+                        sub.innerText = `이번 게임은 추가 하트 보너스 없이 진행됩니다.`;
+                    }
+                }
+                ruleDiv.classList.remove('hidden');
+            }
+            return;
+        }
+
+        // 규칙 안내 종료 후에는 규칙 화면 숨김
+        if (ruleDiv) ruleDiv.classList.add('hidden');
+
+        // 3) 문제 진행 중
         if (state.isActive) {
             waiting.classList.add('hidden');
             result.classList.add('hidden');
@@ -1665,7 +1785,7 @@
             return;
         }
 
-        // 3) 결과(showResult) 상태: 정답+설명 화면 유지
+        // 4) 결과(showResult) 상태: 정답+설명 화면 유지
         if (state.showResult) {
             if (state.questionIndex !== lastResultQuestionIndex) {
                 const isCorrect = (currentUser.answered === state.currentQuestion.answer && currentUser.lives > 0);
@@ -1680,12 +1800,13 @@
             return;
         }
 
-        // 4) 그 외
+        // 5) 그 외
         if (state.questionIndex > 0 && lastResultQuestionIndex === state.questionIndex) {
             waiting.classList.add('hidden');
             answering.classList.add('hidden');
             result.classList.remove('hidden');
         } else {
+            if (ruleDiv) ruleDiv.classList.add('hidden');
             waiting.classList.remove('hidden');
             answering.classList.add('hidden');
             result.classList.add('hidden');
@@ -1722,7 +1843,7 @@
     }
 
     // ----------------------------------------------------------------------
-    // 10. Avatar Animation & Quiz Area
+    // 11. Avatar Animation & Quiz Area
     // ----------------------------------------------------------------------
     function createOrGetAvatarElement(student) {
         let avatar = document.querySelector(`.student-avatar[data-student-id="${student.id}"][data-area="teacher"]`);
@@ -1760,7 +1881,7 @@
 
         const startRect = avatar.getBoundingClientRect();
         const startX = startRect.left + startRect.width / 2;
-        the_startY = startRect.top + startRect.height / 2;
+        const startY = startRect.top + startRect.height / 2;
 
         const targetRect = targetContainer.getBoundingClientRect();
         const endX = newZone === 'O'
@@ -1916,7 +2037,7 @@
     }
 
     // ----------------------------------------------------------------------
-    // 11. Timer
+    // 12. Timer
     // ----------------------------------------------------------------------
     function startTimer(seconds, role) {
         if (timerInterval) {
@@ -1953,6 +2074,7 @@
 
 </body>
 </html>
+
 
 
 
