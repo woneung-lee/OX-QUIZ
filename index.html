@@ -570,7 +570,7 @@
     // ----------------------------------------------------------------------
     // 1. Firebase 설정 (필수 수정 영역)
     // ----------------------------------------------------------------------
-    const firebaseConfig = {
+   const firebaseConfig = {
   apiKey: "AIzaSyAoEYmlGb4tvWtYEQyBusIlyRDajD7-wtI",
   authDomain: "ox-quiz-ce39f.firebaseapp.com",
   databaseURL: "https://ox-quiz-ce39f-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -579,6 +579,7 @@
   messagingSenderId: "509722567204",
   appId: "1:509722567204:web:728f6e3bd0851909d36eb1"
 };
+
     const app = firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const gameRef = database.ref('quizGame');
@@ -1287,6 +1288,8 @@
 
 </body>
 </html>
+
+
 
 
 
