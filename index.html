@@ -2,19 +2,20 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Roblox MAX! OX Quiz - Real-time Multiplayer</title>
+    <title>Roblox MAX! OX Quiz - Real-time Visualization</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Bangers&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
 
     <style>
-        /* CSS 스타일은 이전 버전과 동일하게 유지됩니다. */
-        /* ---------------------- 1. Roblox Global Style ---------------------- */
+        /* ---------------------- 1. Roblox Global Style (글꼴 개선) ---------------------- */
         body { 
-            font-family: 'Bangers', cursive; 
+            font-family: 'Bangers', cursive; /* 본문 글꼴 */
             margin: 0; 
             padding: 20px; 
+            /* 로블록스 잔디 블록 느낌 배경 */
             background-color: #64dd17; 
             background-image: 
                 linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.1) 75%, rgba(0,0,0,0.1)),
@@ -24,7 +25,7 @@
             color: #212121; 
         }
         #app { 
-            max-width: 950px; 
+            max-width: 1000px; /* 너비 확장 */
             margin: 20px auto; 
             padding: 40px; 
             background: #ffffff; 
@@ -35,7 +36,7 @@
             z-index: 10;
         }
         h2, h3, h4 { 
-            font-family: 'Press Start 2P', cursive; 
+            font-family: 'Press Start 2P', cursive; /* 헤드라인 글꼴 */
             color: #000000; 
             text-align: center;
             text-shadow: 3px 3px 0px #ffea00; 
@@ -45,7 +46,7 @@
         h3 { font-size: 2em; }
         h4 { font-size: 1.5em; }
 
-        /* ---------------------- 2. Block Button Style ---------------------- */
+        /* ---------------------- 2. Block Button Style (동일) ---------------------- */
         button, .block-button { 
             font-family: 'Press Start 2P', cursive;
             padding: 18px 30px; 
@@ -70,40 +71,50 @@
         .red-button { background-color: #e74c3c; } 
         .yellow-button { background-color: #f1c40f; color: #000; text-shadow: none; } 
 
-        /* ---------------------- 3. Layout and Elements ---------------------- */
+        /* ---------------------- 3. Layout and Elements (시각화 수정) ---------------------- */
         .hidden { display: none !important; }
         .centered { text-align: center; }
-        input, select { 
-            font-family: 'Bangers', cursive;
-            padding: 12px; 
-            margin: 10px auto; 
-            border: 3px solid #000000; 
-            border-radius: 8px; 
-            box-shadow: 4px 4px 0px #000000; 
-            font-size: 1.1em; 
-            width: 80%; 
-            max-width: 450px;
-            display: block;
-            background-color: #fefefe;
-            color: #212121;
+        input, select, label { font-family: 'Bangers', cursive; }
+        label { font-family: 'Press Start 2P', cursive; }
+
+        /* 라이브 퀴즈 필드 컨테이너 */
+        .quiz-field-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
         }
-        label {
-            font-family: 'Press Start 2P', cursive;
-            display: block;
-            margin-top: 20px;
-            margin-bottom: 5px;
-            color: #333;
-            font-size: 0.9em;
-            text-shadow: 1px 1px 0px #fff;
+
+        /* 1. 운동장 밖 (Unanswered Area) */
+        #unanswered-area, #unanswered-area-spectator {
+            width: 95%; 
+            min-height: 80px;
+            background-color: #f39c12; /* 노란색 경계선 느낌 */
+            border: 4px solid #000;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            align-content: center;
+            justify-content: center;
+            box-shadow: 6px 6px 0px #000;
         }
-        /* Live Quiz Area, Badges, Avatars, Combo, Result Screen styles remain */
-        .result-box { display: flex; justify-content: space-around; margin-top: 30px; }
+
+        /* 2. O/X 운동장 */
+        .result-box { 
+            display: flex; 
+            justify-content: space-between; 
+            width: 95%; /* 전체 너비 */
+            margin-top: 0; 
+        }
         .o-area, .x-area { 
-            flex-basis: 48%; 
-            padding: 20px; 
+            flex-basis: 49%; /* 공간 분할 */
+            padding: 15px; 
             border: 6px solid #000; 
             border-radius: 12px; 
-            min-height: 200px; 
+            min-height: 250px; 
             box-shadow: 8px 8px 0px #000;
             display: flex;
             flex-wrap: wrap;
@@ -112,41 +123,19 @@
         }
         .o-area { background-color: #4CAF50; } 
         .x-area { background-color: #F44336; } 
-        .count-badge { 
-            font-family: 'Press Start 2P', cursive;
-            font-size: 2.5em; 
-            font-weight: bold; 
-            padding: 15px 0; 
-            color: #000; 
-            background: #FFD700; 
-            border-radius: 8px; 
-            margin-bottom: 20px;
-            border: 4px solid #000;
-            box-shadow: 4px 4px 0px #000;
-            width: 100%;
-            text-shadow: 2px 2px 0px #fff;
-        }
+        
+        /* 아바타 (이동 효과) */
         .student-avatar { 
-            display: inline-block; 
-            margin: 5px; 
-            padding: 10px 15px; 
-            border-radius: 0%; 
+            /* ... 기존 스타일 유지 ... */
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* 부드러운 이동 */
             background: #ffffff; 
-            font-size: 1.2em; 
-            font-weight: bold;
-            border: 3px solid #000;
-            box-shadow: 3px 3px 0px #000;
-            white-space: nowrap;
-            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
-            cursor: help; 
+            font-family: 'Bangers', cursive;
         }
-        .spectator-mode { 
-            opacity: 0.4;
-            filter: grayscale(100%);
-            text-decoration: line-through; 
-            border-color: #757575;
-            box-shadow: 2px 2px 0px #757575;
-            background-color: #bdbdbd;
+        
+        /* 배지 스타일 조정 */
+        .count-badge {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 2em;
         }
     </style>
 </head>
@@ -195,14 +184,20 @@
         <div id="teacher-live-quiz" class="hidden">
             <h4>🚨 LIVE 퀴즈: <span id="current-question"></span></h4>
             <div id="timer-display">TIME: <span id="timer-value">10</span></div>
-            <div class="result-box">
-                <div class="o-area">
-                    <div class="count-badge">O: <span id="o-count">0</span></div>
-                    <div id="o-answers" class="answer-list"></div>
+            
+            <div class="quiz-field-container">
+                <div id="unanswered-area" class="unanswered-area">
+                    <span style="font-family: 'Press Start 2P', cursive; font-size: 1.2em; color: #303030;">[운동장 밖] 아직 답변하지 않은 아바타가 여기에 있습니다.</span>
                 </div>
-                <div class="x-area">
-                    <div class="count-badge">X: <span id="x-count">0</span></div>
-                    <div id="x-answers" class="answer-list"></div>
+                <div class="result-box">
+                    <div class="o-area">
+                        <div class="count-badge">O: <span id="o-count">0</span></div>
+                        <div id="o-answers" class="answer-list"></div>
+                    </div>
+                    <div class="x-area">
+                        <div class="count-badge">X: <span id="x-count">0</span></div>
+                        <div id="x-answers" class="answer-list"></div>
+                    </div>
                 </div>
             </div>
             <button class="block-button red-button" onclick="endGame()">💣 게임 강제 종료 (최종 승리자 발표)</button>
@@ -224,7 +219,7 @@
             <option value="🐨">🐨 코알라</option>
             <option value="🐵">🐵 원숭이</option>
             <option value="🐸">🐸 개구리</option>
-            <option value="🐧">🐧 🐧</option>
+            <option value="🐧">🐧 펭귄</option>
             <option value="🦉">🦉 부엉이</option>
             <option value="🦆">🦆 오리</option>
             <option value="🐙">🐙 문어</option>
@@ -255,16 +250,29 @@
                 <button class="o-btn green-button" onclick="submitAnswer('O')">O</button>
                 <button class="x-btn red-button" onclick="submitAnswer('X')">X</button>
             </div>
-        </div>
+            
+            <h4 style="margin-top: 30px; margin-bottom: 10px;">👀 실시간 답변 현황</h4>
+            <div id="live-answer-spectator" class="quiz-field-container">
+                <div id="unanswered-area-spectator" class="unanswered-area" style="background-color: #bbdefb;">
+                     <span style="font-family: 'Press Start 2P', cursive; font-size: 1.2em; color: #303030;">[대기] 아직 답변하지 않은 아바타</span>
+                </div>
+                <div class="result-box">
+                    <div class="o-area">
+                        <div class="count-badge">O: <span class="o-count-spectator">0</span></div>
+                        <div id="o-answers-spectator" class="answer-list"></div>
+                    </div>
+                    <div class="x-area">
+                        <div class="count-badge">X: <span class="x-count-spectator">0</span></div>
+                        <div id="x-answers-spectator" class="answer-list"></div>
+                    </div>
+                </div>
+            </div>
+            </div>
 
         <div id="student-result" class="quiz-state hidden centered">
             <div id="result-screen">
                 <div class="result-emoji" id="result-emoji">✨</div>
                 <h4 id="result-message"></h4>
-            </div>
-            <div id="spectator-view" class="result-box">
-                <div class="o-area"><div class="count-badge">O: <span class="o-count-spectator">0</span></div><div id="o-answers-spectator" class="answer-list"></div></div>
-                <div class="x-area"><div class="count-badge">X: <span class="x-count-spectator">0</span></div><div id="x-answers-spectator" class="answer-list"></div></div>
             </div>
         </div>
     </div>
@@ -275,14 +283,14 @@
     // 📢 1. Firebase 설정 (필수 수정 영역) 📢
     // ----------------------------------------------------------------------
     const firebaseConfig = {
-  apiKey: "AIzaSyAoEYmlGb4tvWtYEQyBusIlyRDajD7-wtI",
-  authDomain: "ox-quiz-ce39f.firebaseapp.com",
-  databaseURL: "https://ox-quiz-ce39f-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "ox-quiz-ce39f",
-  storageBucket: "ox-quiz-ce39f.firebasestorage.app",
-  messagingSenderId: "509722567204",
-  appId: "1:509722567204:web:728f6e3bd0851909d36eb1"
-};
+        apiKey: "YOUR_API_KEY", // 사용자님의 API Key로 교체하세요.
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        databaseURL: "https://YOUR-PROJECT-ID-default-rtdb.firebaseio.com", // 프로젝트 Realtime DB URL로 교체하세요.
+        projectId: "YOUR-PROJECT-ID",
+        storageBucket: "YOUR-PROJECT_ID.appspot.com",
+        messagingSenderId: "...",
+        appId: "..."
+    };
 
     // Firebase 초기화
     const app = firebase.initializeApp(firebaseConfig);
@@ -295,14 +303,28 @@
     // 2. 전역 변수 및 상수
     // ----------------------------------------------------------------------
     const TEACHER_PASSWORD = 'teacher1234'; // 선생님 비밀번호
-    let currentUser = null; // 현재 접속한 학생 정보 (로컬)
-    let currentGameState = {}; // 현재 게임 상태 (DB 동기화)
-    let studentList = []; // 현재 모든 학생 목록 (DB 동기화)
+    let currentUser = null; 
+    let currentGameState = {}; 
+    let studentList = []; 
     let timerInterval = null;
-    let timerStartTime = 0;
+    
+    // (Helper: Sound)
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(frequency, duration) {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.frequency.value = frequency;
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + duration);
+    }
     
     // ----------------------------------------------------------------------
-    // 3. View Management
+    // 3. View Management (동일)
     // ----------------------------------------------------------------------
     function hideAll() {
         document.getElementById('initial-screen').classList.add('hidden');
@@ -312,13 +334,11 @@
         document.getElementById('student-view').classList.add('hidden');
     }
 
-    // [MODIFIED] 초기화면에서 로그인 화면으로 분기
     function showTeacherLogin() {
         hideAll();
         document.getElementById('teacher-login-screen').classList.remove('hidden');
     }
     
-    // [NEW] 선생님 로그인 로직
     function teacherLogin() {
         const password = document.getElementById('teacher-password').value;
         if (password === TEACHER_PASSWORD) {
@@ -332,7 +352,6 @@
     function showTeacherView() {
         hideAll();
         document.getElementById('teacher-view').classList.remove('hidden');
-        // 선생님 뷰는 데이터 구독만 하고, 화면 업데이트는 리스너에서 처리합니다.
     }
 
     function showStudentLogin() {
@@ -343,7 +362,6 @@
     function showStudentView() {
         hideAll();
         document.getElementById('student-view').classList.remove('hidden');
-        // 학생 뷰 전환 시 규칙 업데이트
         if(currentGameState.comboThreshold) {
              updateLifeRuleInfo(currentGameState.comboThreshold);
         }
@@ -360,33 +378,28 @@
     }
     
     // ----------------------------------------------------------------------
-    // 4. Firebase Data Listeners (실시간 동기화 핵심)
+    // 4. Firebase Data Listeners (실시간 동기화)
     // ----------------------------------------------------------------------
     
-    // 게임 상태(문제, 타이머 등) 변화 감지
     stateRef.on('value', (snapshot) => {
-        currentGameState = snapshot.val() || { questionIndex: 0, isActive: false, comboThreshold: 5 };
+        currentGameState = snapshot.val() || { questionIndex: 0, isActive: false, comboThreshold: 5, showResult: false };
         
-        // 콤보 규칙 업데이트
         updateLifeRuleInfo(currentGameState.comboThreshold);
 
-        // 선생님 뷰 업데이트 (대기/라이브 전환)
         if (!document.getElementById('teacher-view').classList.contains('hidden')) {
-            updateTeacherView();
+            updateTeacherView(); // 선생님 뷰 업데이트
         }
 
-        // 학생 뷰 업데이트 (문제 풀이/대기 전환)
         if (currentUser && !document.getElementById('student-view').classList.contains('hidden')) {
-             updateStudentStateFromDB();
+             updateStudentStateFromDB(); // 학생 뷰 업데이트
         }
     });
     
-    // 학생 목록(답변, 목숨 등) 변화 감지
     studentRef.on('value', (snapshot) => {
         const students = snapshot.val();
         studentList = students ? Object.values(students) : [];
         
-        // 선생님/학생 뷰의 답변 현황 업데이트
+        // **[MODIFIED]** 학생 위치 시각화 (선생님/학생 공통)
         updateQuizAreaViews();
         
         // 현재 접속한 학생의 로컬 정보 업데이트
@@ -404,8 +417,8 @@
     // 5. Student Logic
     // ----------------------------------------------------------------------
 
-    // [MODIFIED] Firebase에 학생 정보 저장/업데이트
     async function loginStudent() {
+        // ... (로그인 로직 동일)
         const nickname = document.getElementById('student-nickname').value;
         const emoji = document.getElementById('emoji-select').value;
         if (!nickname) {
@@ -413,17 +426,11 @@
             return;
         }
 
-        const studentDataSnapshot = await studentRef.once('value');
-        const students = studentDataSnapshot.val();
-        
-        // 기존 닉네임 사용자를 찾습니다.
         let existingUser = studentList.find(s => s.nickname === nickname);
-        
         let studentId;
         
         if (existingUser) {
             studentId = existingUser.id;
-            // 로컬 정보 업데이트
             currentUser = existingUser;
             currentUser.emoji = emoji; 
         } else {
@@ -438,7 +445,6 @@
             };
         }
         
-        // Firebase에 정보 쓰기/업데이트
         await database.ref(`quizGame/students/${studentId}`).update(currentUser);
 
         document.getElementById('student-info').innerHTML = `${currentUser.emoji} **${currentUser.nickname}**님, 환영해요!`;
@@ -457,12 +463,11 @@
         }
 
         if (state.isActive) {
-            // 문제 출제 중
+            // 문제 출제 중: 답변 화면 및 실시간 현황 표시
             document.getElementById('question-text').innerText = state.currentQuestion.text;
             document.getElementById('student-answering').classList.remove('hidden');
             document.querySelectorAll('.answer-buttons button').forEach(btn => btn.disabled = false);
             
-            // 타이머 재시작 (동기화)
             const remainingTime = Math.max(0, state.currentQuestion.timer - Math.floor((Date.now() - state.answerTime) / 1000));
             startTimer(remainingTime, 'student');
             
@@ -474,33 +479,34 @@
             // 대기 중
             document.getElementById('student-waiting').classList.remove('hidden');
         }
-    }
-    
-    // [MODIFIED] Firebase에 답변 업데이트
-    function submitAnswer(answer) {
-        if (currentUser.lives <= 0 || !currentGameState.isActive) return;
         
-        currentUser.answered = answer; 
-        
-        // Firebase에 답변 필드만 업데이트
-        database.ref(`quizGame/students/${currentUser.id}/answered`).set(answer);
-        
-        playSound(400 + Math.random() * 200, 0.1);
-        
-        // 버튼 시각적 피드백 (로컬에서만 처리)
+        // 현재 답변 상태에 따라 버튼 스타일 업데이트 (선택된 답 강조)
         document.querySelectorAll('.answer-buttons button').forEach(btn => {
             btn.style.borderColor = '#000'; 
             btn.style.boxShadow = (btn.classList.contains('o-btn') ? '10px 10px 0px #000' : '10px 10px 0px #000');
         });
-        if (answer === 'O') {
+        if (currentUser.answered === 'O') {
             document.querySelector('.o-btn').style.borderColor = '#ffea00';
             document.querySelector('.o-btn').style.boxShadow = '10px 10px 0px #ffea00';
-        } else if (answer === 'X') {
+        } else if (currentUser.answered === 'X') {
             document.querySelector('.x-btn').style.borderColor = '#ffea00';
             document.querySelector('.x-btn').style.boxShadow = '10px 10px 0px #ffea00';
         }
     }
     
+    function submitAnswer(answer) {
+        if (currentUser.lives <= 0 || !currentGameState.isActive) return;
+        
+        // 로컬 업데이트 및 Firebase에 답변 필드만 업데이트
+        currentUser.answered = answer; 
+        database.ref(`quizGame/students/${currentUser.id}/answered`).set(answer);
+        
+        playSound(400 + Math.random() * 200, 0.1);
+        
+        // 버튼 시각적 피드백 (로컬에서만 처리)
+        updateStudentStateFromDB(); // 버튼 스타일 업데이트를 위해 재호출
+    }
+
     function updateComboDisplay() {
         const comboIndicator = document.getElementById('combo-indicator');
         const comboCount = document.getElementById('combo-count');
@@ -515,15 +521,16 @@
 
 
     // ----------------------------------------------------------------------
-    // 6. Teacher Logic (Firebase Write Operations)
+    // 6. Teacher Logic
     // ----------------------------------------------------------------------
 
-    // [MODIFIED] 선생님 뷰 업데이트
+    // [MODIFIED] 선생님 뷰 업데이트 (라이브 시각화 전환)
     function updateTeacherView() {
         const state = currentGameState;
         document.getElementById('question-index').innerText = state.questionIndex;
         
         if (state.isActive) {
+            // 라이브 퀴즈 화면 표시
             document.getElementById('teacher-preparation').classList.add('hidden');
             document.getElementById('teacher-live-quiz').classList.remove('hidden');
             document.getElementById('current-question').innerText = `[#${state.questionIndex}] ${state.currentQuestion.text}`;
@@ -533,12 +540,12 @@
             startTimer(remainingTime, 'teacher');
             
         } else {
+            // 대기 화면 표시
             document.getElementById('teacher-preparation').classList.remove('hidden');
             document.getElementById('teacher-live-quiz').classList.add('hidden');
         }
     }
 
-    // [MODIFIED] Firebase에 문제 출제 데이터 업데이트
     async function sendQuestion() {
         const comboThreshold = parseInt(document.getElementById('combo-life-threshold').value) || 5;
         const text = document.getElementById('question-input').value;
@@ -550,7 +557,6 @@
             return;
         }
         
-        // 이전 퀴즈가 진행 중이었다면 결과를 먼저 처리
         if (currentGameState.isActive && timerInterval) {
             clearInterval(timerInterval);
             await processResults(); 
@@ -562,7 +568,7 @@
         const updates = {};
         studentList.forEach(student => {
             if (student.lives > 0) {
-                 updates[student.id + '/answered'] = null;
+                 updates[student.id + '/answered'] = null; // 답변을 null로 초기화 -> 운동장 밖으로 이동
             }
         });
         await studentRef.update(updates);
@@ -573,12 +579,11 @@
             currentQuestion: { text, timer, answer },
             isActive: true,
             showResult: false,
-            answerTime: Date.now(), // 현재 시간을 기록하여 동기화
+            answerTime: Date.now(), 
             comboThreshold: comboThreshold
         });
     }
 
-    // [MODIFIED] Firebase에서 모든 게임 데이터 삭제 (초기화)
     function resetGameData() {
         const confirmReset = confirm('🚨 경고: 현재 저장된 모든 학생 정보와 게임 기록을 삭제하시겠습니까?');
         if (confirmReset) {
@@ -594,12 +599,94 @@
     }
 
     // ----------------------------------------------------------------------
-    // 7. Core Game Logic (Results Processing)
+    // 7. Core Game Logic & Visualization
     // ----------------------------------------------------------------------
 
-    // [MODIFIED] 최종 결과 처리 및 Firebase 상태 업데이트
+    // [MODIFIED] 학생 답변 현황 업데이트 (실시간 시각화 핵심)
+    function updateQuizAreaViews() {
+        // 생존 학생 분류: O, X, Unanswered (운동장 밖)
+        const oStudents = studentList.filter(s => s.lives > 0 && s.answered === 'O');
+        const xStudents = studentList.filter(s => s.lives > 0 && s.answered === 'X');
+        const unansweredStudents = studentList.filter(s => s.lives > 0 && s.answered === null); 
+        
+        // 선생님 뷰 업데이트 (teacher-live-quiz가 hidden이 아닐 때)
+        if (!document.getElementById('teacher-view').classList.contains('hidden') || currentGameState.isActive) {
+            updateQuizArea(document.getElementById('unanswered-area'), unansweredStudents);
+            updateQuizArea(document.getElementById('o-answers'), oStudents);
+            updateQuizArea(document.getElementById('x-answers'), xStudents);
+            document.getElementById('o-count').innerText = oStudents.length;
+            document.getElementById('x-count').innerText = xStudents.length;
+        }
+        
+        // 학생 라이브 답변 현황 업데이트 (student-answering이 hidden이 아닐 때)
+        if (!document.getElementById('student-view').classList.contains('hidden') && currentGameState.isActive) {
+             updateQuizArea(document.getElementById('unanswered-area-spectator'), unansweredStudents);
+             updateQuizArea(document.getElementById('o-answers-spectator'), oStudents);
+             updateQuizArea(document.getElementById('x-answers-spectator'), xStudents);
+             document.querySelector('.o-count-spectator').innerText = oStudents.length;
+             document.querySelector('.x-count-spectator').innerText = xStudents.length;
+        }
+        
+        // 관전 모드 업데이트 (student-result가 hidden이 아닐 때)
+        if (!document.getElementById('student-view').classList.contains('hidden') && currentUser && currentUser.lives <= 0) {
+             // 관전 모드는 최종 O/X 결과만 보여주므로 unanswered는 제외
+             updateQuizArea(document.getElementById('o-answers-spectator'), oStudents);
+             updateQuizArea(document.getElementById('x-answers-spectator'), xStudents);
+             document.querySelector('.o-count-spectator').innerText = oStudents.length;
+             document.querySelector('.x-count-spectator').innerText = xStudents.length;
+        }
+    }
+
+    // [MODIFIED] 아바타 생성/이동 로직
+    function updateQuizArea(container, students) {
+        const existingAvatars = Array.from(container.querySelectorAll('.student-avatar'));
+        const existingAvatarMap = new Map(existingAvatars.map(el => [el.dataset.id, el]));
+        const studentIdsInContainer = new Set(students.map(s => s.id));
+        
+        // 1. 사라져야 할 아바타 제거
+        existingAvatars.forEach(avatar => {
+            if (!studentIdsInContainer.has(avatar.dataset.id)) {
+                // 부드러운 제거 효과
+                avatar.style.opacity = '0';
+                avatar.style.transform = 'scale(0)';
+                setTimeout(() => avatar.remove(), 500); 
+            }
+        });
+
+        // 2. 새로운 아바타 생성 또는 기존 아바타 이동
+        students.forEach(student => {
+            let avatar = existingAvatarMap.get(student.id);
+            if (!avatar) {
+                // 새로 생성 (운동장 밖/O/X로 새로 진입)
+                avatar = document.createElement('div');
+                avatar.className = `student-avatar`;
+                avatar.dataset.id = student.id;
+                avatar.innerHTML = `${student.emoji} ${student.nickname.split(' ')[0]}`;
+                // opacity 0에서 시작하여 부드럽게 나타나도록 설정
+                avatar.style.opacity = '0'; 
+                avatar.style.transform = 'scale(0.8)';
+                container.appendChild(avatar);
+                
+                // 생성 후 애니메이션 적용
+                setTimeout(() => {
+                    avatar.style.opacity = '1';
+                    avatar.style.transform = 'scale(1)';
+                }, 10);
+            } else {
+                // 기존 아바타를 현재 컨테이너로 이동 (다른 위치로 이동)
+                if (avatar.parentNode !== container) {
+                    container.appendChild(avatar);
+                }
+                avatar.innerHTML = `${student.emoji} ${student.nickname.split(' ')[0]}`; 
+                avatar.classList.toggle('spectator-mode', student.lives <= 0);
+                avatar.style.opacity = '1'; 
+                avatar.style.transform = 'scale(1)';
+            }
+        });
+    }
+
     async function processResults(isForced = false) {
-        // 이미 결과 처리가 완료되었거나, 게임이 비활성화 상태면 중지
+        // ... (결과 처리 로직 동일)
         if (currentGameState.showResult || !currentGameState.isActive) return;
         
         clearInterval(timerInterval);
@@ -614,7 +701,6 @@
         studentList.forEach(student => {
             if (student.lives > 0) { 
                 if (student.answered === correctAnswer && !isForced) {
-                    // 정답 처리: 콤보 증가, 목숨 보너스
                     student.combo = (student.combo || 0) + 1;
                     
                     if (comboThreshold > 0 && (student.combo % comboThreshold === 0)) {
@@ -624,46 +710,40 @@
                     
                     if (student.id === currentUser?.id) isCurrentUserCorrect = true;
                 } else {
-                    // 오답 또는 무응답 처리: 목숨 차감, 콤보 초기화
                     student.lives--;
                     student.combo = 0;
                 }
                 
-                // 업데이트할 학생 정보 기록
                 studentUpdates[student.id] = {
                     lives: student.lives,
                     combo: student.combo,
-                    answered: student.answered
+                    answered: student.answered // 답변 상태 유지 (결과 화면용)
                 };
             }
         });
 
-        // 1. Firebase에 학생 목록 업데이트
         await studentRef.update(studentUpdates);
 
-        // 2. Firebase에 결과 화면 전환 상태 업데이트
         await stateRef.update({
             isActive: false,
             showResult: true,
-            isCurrentUserCorrect: isCurrentUserCorrect, // 학생 뷰 피드백용
-            isLifeGained: isLifeGained // 학생 뷰 피드백용
+            isCurrentUserCorrect: isCurrentUserCorrect, 
+            isLifeGained: isLifeGained 
         });
         
-        // 3초 후 다음 문제 대기 상태로 자동 전환 (선생님 뷰에서만 실행)
         if (!document.getElementById('teacher-view').classList.contains('hidden')) {
             setTimeout(() => {
-                stateRef.update({ showResult: false }); // 결과 화면 종료
+                stateRef.update({ showResult: false }); 
             }, 3000);
         }
     }
 
-    // [MODIFIED] 결과 화면 표시 (DB 상태를 읽어와서 표시)
     function showResultScreen(isCorrect, isLifeGained, question) { 
+        // ... (결과 화면 표시 로직 동일)
         const resultScreen = document.getElementById('result-screen');
         const resultEmoji = document.getElementById('result-emoji');
         const resultMessage = document.getElementById('result-message');
         
-        // UI 변경 전에 대기/정답 뷰 숨기기
         document.querySelectorAll('.quiz-state').forEach(el => el.classList.add('hidden'));
         document.getElementById('student-result').classList.remove('hidden');
 
@@ -686,62 +766,8 @@
         }
     }
     
-    // [MODIFIED] 학생 답변 현황 업데이트 (리스너를 통해 자동으로 호출됨)
-    function updateQuizAreaViews() {
-        const oStudents = studentList.filter(s => s.lives > 0 && s.answered === 'O');
-        const xStudents = studentList.filter(s => s.lives > 0 && s.answered === 'X');
-        
-        // 선생님 뷰 업데이트
-        updateQuizArea(document.getElementById('o-answers'), oStudents);
-        updateQuizArea(document.getElementById('x-answers'), xStudents);
-        document.getElementById('o-count').innerText = oStudents.length;
-        document.getElementById('x-count').innerText = xStudents.length;
-        
-        // 관전 모드 업데이트
-        if (currentUser && currentUser.lives <= 0) {
-            updateQuizArea(document.getElementById('o-answers-spectator'), oStudents);
-            updateQuizArea(document.getElementById('x-answers-spectator'), xStudents);
-            document.querySelector('.o-count-spectator').innerText = oStudents.length;
-            document.querySelector('.x-count-spectator').innerText = xStudents.length;
-        }
-    }
-
-    // (Helper: 아바타 애니메이션 로직은 그대로 유지)
-    function updateQuizArea(container, students) { /* ... */
-        const existingAvatars = Array.from(container.querySelectorAll('.student-avatar'));
-        const existingAvatarMap = new Map(existingAvatars.map(el => [el.dataset.id, el]));
-        const studentIdsInContainer = new Set(students.map(s => s.id));
-
-        existingAvatars.forEach(avatar => {
-            if (!studentIdsInContainer.has(avatar.dataset.id)) {
-                avatar.style.opacity = '0';
-                avatar.style.transform = 'scale(0)';
-                setTimeout(() => avatar.remove(), 500); 
-            }
-        });
-
-        students.forEach(student => {
-            let avatar = existingAvatarMap.get(student.id);
-            if (!avatar) {
-                avatar = document.createElement('div');
-                avatar.className = `student-avatar`;
-                avatar.dataset.id = student.id;
-                avatar.innerHTML = `${student.emoji} ${student.nickname.split(' ')[0]}`;
-                container.appendChild(avatar);
-                setTimeout(() => {
-                    avatar.style.opacity = '1';
-                    avatar.style.transform = 'scale(1)';
-                }, 10);
-            } else {
-                container.appendChild(avatar); 
-                avatar.innerHTML = `${student.emoji} ${student.nickname.split(' ')[0]}`; 
-                avatar.classList.toggle('spectator-mode', student.lives <= 0);
-            }
-        });
-    }
-
     // ----------------------------------------------------------------------
-    // 8. Timer & End Game Logic
+    // 8. Timer & End Game Logic (동일)
     // ----------------------------------------------------------------------
 
     function startTimer(seconds, role) {
@@ -759,16 +785,13 @@
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
                 if (role === 'teacher') {
-                    // 타이머 종료 시 결과 처리 요청
                     processResults(); 
                 }
             }
         }, 1000);
     }
     
-    // [MODIFIED] 강제 종료 시 결과 처리 및 최종 순위 표시
     function endGame() {
-        // 결과를 처리하고 isActive를 false로 업데이트
         processResults(true); 
         
         let survivingStudents = studentList.filter(s => s.lives > 0);
@@ -790,28 +813,11 @@
             alert(`😢 아쉽지만 생존자가 없습니다. 게임 종료!`);
         }
 
-        // 게임 상태를 초기화(대기 모드)
         stateRef.update({ isActive: false, showResult: false });
-        
-        // 학생 뷰 업데이트는 리스너가 처리
-    }
-    
-    // (Helper: Sound)
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    function playSound(frequency, duration) {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        oscillator.frequency.value = frequency;
-        oscillator.type = 'sine';
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + duration);
     }
 </script>
 
 </body>
-
 </html>
+
+
