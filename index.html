@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>오늘의 OX 퀴즈</title>
+    <title>OX 퀴즈 운동장</title>
 
     <!-- Firebase v8 -->
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
@@ -1015,9 +1015,9 @@
 <div id="app">
     <!-- 초기 화면 -->
     <div id="initial-screen" class="centered">
-        <h2>🚀 오늘의 OX 퀴즈 🚀</h2>
+        <h2>🚀 OX 퀴즈 운동장 🚀</h2>
         <p style="font-size: 1rem; margin-bottom: 16px;">
-            두근두근! 오늘의 퀴즈 시간 💡
+            선생님이 문제를 내면, 우리는 O / X 퀴즈를 맞춰요!
         </p>
         <button class="block-button yellow-button" onclick="showTeacherLogin()">👨‍🏫 선생님으로 접속</button>
         <button class="block-button blue-button" onclick="showStudentLogin()">👧👦 학생으로 접속</button>
@@ -1129,12 +1129,14 @@
         <div id="teacher-live-quiz" class="hidden">
             <h4 id="current-question"></h4>
             
-            <div id="timer-display" class="centered">
-                <span class="timer-label">⏱️ 남은 시간</span>
-                <div>
-                    <span class="timer-icon">⏰</span>
-                    <span id="timer-value">10</span>
-                    <span style="font-size: 2rem; font-weight: 600; color: #546e7a;">초</span>
+            <div class="centered">
+                <div id="timer-display">
+                    <span class="timer-label">⏱️ 남은 시간</span>
+                    <div>
+                        <span class="timer-icon">⏰</span>
+                        <span id="timer-value">10</span>
+                        <span style="font-size: 2rem; font-weight: 600; color: #546e7a;">초</span>
+                    </div>
                 </div>
             </div>
 
@@ -1164,9 +1166,6 @@
             </div>
 
             <div class="centered" style="margin-top: 20px;">
-                <button class="block-button green-button" onclick="proceedToNextQuestion()">
-                    ⏭ 다음 문제
-                </button>
                 <button class="block-button red-button" onclick="endGame(false)">
                     🛑 그만하기 (현재까지 점수로 결과 발표)
                 </button>
@@ -1174,13 +1173,15 @@
         </div>
 
         <!-- 선생님 결과 화면 -->
-        <div id="teacher-result" class="quiz-state hidden centered">
-            <div id="teacher-result-screen">
-                <div id="teacher-result-emoji">✨</div>
-                <h4 id="teacher-result-message"></h4>
-                <div id="teacher-correct-students" class="correct-students-list hidden">
-                    <div class="correct-students-title">🎉 정답자 명단</div>
-                    <div id="teacher-correct-students-content"></div>
+        <div id="teacher-result" class="quiz-state hidden">
+            <div class="centered">
+                <div id="teacher-result-screen">
+                    <div id="teacher-result-emoji">✨</div>
+                    <h4 id="teacher-result-message"></h4>
+                    <div id="teacher-correct-students" class="correct-students-list hidden">
+                        <div class="correct-students-title">🎉 정답자 명단</div>
+                        <div id="teacher-correct-students-content"></div>
+                    </div>
                 </div>
             </div>
             <div class="centered" style="margin-top: 16px;">
@@ -2025,25 +2026,6 @@
         });
     }
 
-    async function proceedToNextQuestion() {
-        // 규칙 설명 중이면 첫 문제로
-        if (currentGameState.isGameStarted && currentGameState.preGameExplain) {
-            await startFirstQuestion();
-            return;
-        }
-
-        // 현재 문제가 진행 중이면 강제로 결과 처리
-        if (currentGameState.isActive) {
-            await processResults(true);
-            return;
-        }
-
-        // 이미 결과 화면인 경우, moveToNextQuestion() 호출
-        if (currentGameState.showResult) {
-            await moveToNextQuestion();
-        }
-    }
-
     // 선생님이 결과 화면에서 '다음 문제' 버튼을 누르면 호출
     async function moveToNextQuestion() {
         const nextIndex = currentGameState.questionIndex + 1;
@@ -2386,8 +2368,7 @@
                 </p>
             `;
         } else {
-            resultsList.
-                forEach(r => {
+            resultsList.forEach(r => {
                 const correctNames =
                     r.correctStudents && r.correctStudents.length > 0
                         ? r.correctStudents.map(s => `${s.emoji} ${s.nickname}`).join(', ')
@@ -2933,6 +2914,7 @@
 
 </body>
 </html>
+
 
 
 
