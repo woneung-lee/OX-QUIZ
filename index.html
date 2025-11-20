@@ -247,7 +247,6 @@
             border: 2px solid #ef9a9a;
         }
 
-        /* 중앙 O / X 마크 */
         .ox-mark {
             position: absolute;
             top: 50%;
@@ -268,7 +267,6 @@
             z-index: 1;
         }
 
-        /* OX 선택 인원 수 뱃지 */
         .count-badge {
             position: absolute;
             top: 8px;
@@ -394,7 +392,7 @@
             color: #1565c0;
         }
 
-        /* ---------------------- 6. Teacher extra panels ---------------------- */
+        /* ---------------------- 6. Teacher panels ---------------------- */
         #teacher-preparation {
             width: 100%;
             max-width: 100%;
@@ -441,6 +439,8 @@
             background: linear-gradient(135deg, #fff8e1, #e3f2fd);
             border: 3px solid #ffca28;
             box-shadow: 0 18px 40px rgba(15,23,42,0.15);
+            max-height: 60vh;
+            overflow-y: auto;
         }
 
         .mvp-box {
@@ -555,7 +555,21 @@
             color: #546e7a;
         }
 
-        /* ---------------------- 8. Responsive ---------------------- */
+        /* ---------------------- 8. Scroll containers ---------------------- */
+        #teacher-view,
+        #student-view,
+        #final-result-view {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        #teacher-live-quiz,
+        #live-answer-spectator {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        /* ---------------------- 9. Responsive ---------------------- */
         @media (max-width: 768px) {
             #app {
                 padding: 18px 14px 24px;
@@ -758,7 +772,7 @@
     <div id="student-view" class="hidden">
         <h3 id="student-info" class="centered"></h3>
         <div class="centered">
-            <p id="student-lives">❤️ 하트: 3</p>
+            <p id="student-lives"></p>
             <div id="life-rule-info" class="hidden"></div>
             <div id="combo-indicator" class="combo-display hidden">
                 🔥 <span id="combo-count">0</span> COMBO!
@@ -803,14 +817,14 @@
                         <div class="o-area" id="o-area-spectator">
                             <div class="ox-mark">O</div>
                             <div class="count-badge">
-                                👧👦 <span class="o-count-spectator count-number">0</span>명
+                                <span class="o-count-spectator count-number">0</span>명
                             </div>
                             <div id="o-answers-spectator" class="answer-list"></div>
                         </div>
                         <div class="x-area" id="x-area-spectator">
                             <div class="ox-mark">X</div>
                             <div class="count-badge">
-                                👧👦 <span class="x-count-spectator count-number">0</span>명
+                                <span class="x-count-spectator count-number">0</span>명
                             </div>
                             <div id="x-answers-spectator" class="answer-list"></div>
                         </div>
@@ -837,9 +851,6 @@
         <div class="centered" style="margin-top: 18px;">
             <button class="block-button blue-button" id="btn-back-teacher" onclick="backToTeacherFromResult()">
                 📋 관리 화면으로 돌아가기
-            </button>
-            <button class="block-button yellow-button" id="btn-back-student" onclick="backToStudentFromResult()">
-                🏠 처음으로
             </button>
         </div>
     </div>
@@ -873,8 +884,8 @@
     const TEACHER_PASSWORD = 'teacher1234';
     let INITIAL_LIVES = 3;
 
-    let currentUser = null;     // 학생일 때만 세팅
-    let isTeacherMode = false;  // 이 브라우저가 선생님 화면인지 여부
+    let currentUser = null;
+    let isTeacherMode = false;
 
     let currentGameState = {};
     let studentList = [];
@@ -889,7 +900,8 @@
     const lastZoneMap = {};
     const lastZoneMapSpectator = {};
 
-    let finalShown = false;     // 최종 결과 화면 중복 표시 방지
+    let finalShown = false;
+    let lastResetToHome = null;
 
     // 사운드
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -1038,6 +1050,17 @@
 
         updateLifeRuleInfo(currentGameState.comboThreshold || 0);
 
+        // resetToHome 신호 처리 (선생님이 결과에서 관리 화면으로 돌아간 경우)
+        if (currentGameState.resetToHome && currentGameState.resetToHome !== lastResetToHome) {
+            lastResetToHome = currentGameState.resetToHome;
+            if (!isTeacherMode) {
+                currentUser = null;
+                finalShown = false;
+                hideAll();
+                document.getElementById('initial-screen').classList.remove('hidden');
+            }
+        }
+
         if (!document.getElementById('teacher-view').classList.contains('hidden')) {
             updateTeacherView();
         }
@@ -1046,7 +1069,6 @@
             updateStudentStateFromDB();
         }
 
-        // 게임 종료 상태면 선생님·학생 모두 최종 결과 화면 표시
         if (currentGameState.gameFinished && !finalShown) {
             const alive = studentList
                 .filter(s => s.lives > 0)
@@ -1072,13 +1094,16 @@
                 currentUser = updatedUser;
                 const livesEl = document.getElementById('student-lives');
                 if (livesEl) {
-                    livesEl.innerText = `❤️ 하트: ${currentUser.lives}`;
+                    if (currentGameState && currentGameState.isGameStarted) {
+                        livesEl.innerText = `❤️ 하트: ${currentUser.lives}`;
+                    } else {
+                        livesEl.innerText = '';
+                    }
                 }
                 updateComboDisplay();
             }
         }
 
-        // studentList 갱신 이후에도, gameFinished이면 최종결과 표시 보조
         if (currentGameState.gameFinished && !finalShown) {
             const alive = studentList
                 .filter(s => s.lives > 0)
@@ -1253,7 +1278,6 @@
 
         finalShown = false;
 
-        // 이전 게임 결과 기록 초기화
         await resultsRef.set(null);
 
         const firstProblem = problemPool[0];
@@ -1519,15 +1543,9 @@
         const container = document.getElementById('final-ranking-container');
         view.classList.remove('hidden');
 
-        // 교사/학생 버튼 구분
         const teacherBtn = document.getElementById('btn-back-teacher');
-        const studentBtn = document.getElementById('btn-back-student');
-        if (isTeacherMode) {
-            if (teacherBtn) teacherBtn.style.display = 'inline-block';
-            if (studentBtn) studentBtn.style.display = 'none';
-        } else {
-            if (teacherBtn) teacherBtn.style.display = 'none';
-            if (studentBtn) studentBtn.style.display = 'inline-block';
+        if (teacherBtn) {
+            teacherBtn.style.display = isTeacherMode ? 'inline-block' : 'none';
         }
 
         if (alive.length === 0) {
@@ -1701,7 +1719,7 @@
         }
     }
 
-    // 교사: 관리 화면으로 돌아가기 → 모든 학생 정보 삭제
+    // 교사: 관리 화면으로 돌아가기 → 모든 학생 정보 삭제 + 모든 학생은 처음 화면으로
     async function backToTeacherFromResult() {
         try {
             await studentRef.remove();
@@ -1714,13 +1732,14 @@
             isGameStarted: false,
             preGameExplain: false,
             gameFinished: false,
-            questionIndex: 0
+            questionIndex: 0,
+            resetToHome: Date.now()
         });
         finalShown = false;
         showTeacherView();
     }
 
-    // 학생: 처음으로 → 자기 캐릭터 삭제 후 캐릭터 만들기 화면
+    // 학생용 개별 버튼은 더 이상 사용하지 않지만, 함수는 남겨둠(호출되는 곳 없음)
     async function backToStudentFromResult() {
         if (currentUser) {
             try {
@@ -1773,7 +1792,8 @@
         if (infoEl) {
             infoEl.innerText = `${emoji} ${nickname} 님, 환영합니다!`;
         }
-        document.getElementById('student-lives').innerText = `❤️ 하트: ${baseHearts}`;
+        const livesEl = document.getElementById('student-lives');
+        if (livesEl) livesEl.innerText = '';
 
         showStudentView();
     }
@@ -1939,7 +1959,7 @@
 
         const startRect = avatar.getBoundingClientRect();
         const startX = startRect.left + startRect.width / 2;
-        const startY = startRect.top + startRect.height / 2;
+               const startY = startRect.top + startRect.height / 2;
 
         const targetRect = targetContainer.getBoundingClientRect();
         const endX = newZone === 'O'
@@ -2132,6 +2152,8 @@
 
 </body>
 </html>
+
+
 
 
 
