@@ -2,10 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Roblox MAX! OX Quiz - Real-time Problem Setting & Management</title>
-
-    <!-- 귀엽고 읽기 쉬운 한글 폰트 -->
-    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gamja+Flower&display=swap" rel="stylesheet">
+    <title>Roblox OX 퀴즈 운동장</title>
 
     <!-- Firebase v8 -->
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
@@ -21,7 +18,11 @@
             margin: 0;
             padding: 16px;
             background: linear-gradient(135deg, #e3f2fd, #fff3e0);
-            font-family: 'Gamja Flower', 'Segoe UI', sans-serif;
+            font-family:
+                '맑은 고딕', 'Malgun Gothic',
+                'Apple SD Gothic Neo', 'Noto Sans KR',
+                system-ui, -apple-system, BlinkMacSystemFont,
+                'Segoe UI', sans-serif;
             color: #2c3e50;
         }
 
@@ -38,7 +39,10 @@
         }
 
         h2, h3, h4 {
-            font-family: 'Jua', 'Gamja Flower', sans-serif;
+            font-family:
+                '맑은 고딕', 'Malgun Gothic',
+                'Apple SD Gothic Neo', 'Noto Sans KR',
+                system-ui, 'Segoe UI', sans-serif;
             color: #0d47a1;
             text-align: center;
             margin-top: 8px;
@@ -63,7 +67,10 @@
         .centered { text-align: center; }
 
         label {
-            font-family: 'Jua', 'Gamja Flower', sans-serif;
+            font-family:
+                '맑은 고딕', 'Malgun Gothic',
+                'Apple SD Gothic Neo', 'Noto Sans KR',
+                system-ui, 'Segoe UI', sans-serif;
             display: block;
             margin-top: 12px;
             margin-bottom: 4px;
@@ -72,7 +79,10 @@
         }
 
         input, select, textarea {
-            font-family: 'Gamja Flower', 'Segoe UI', sans-serif;
+            font-family:
+                '맑은 고딕', 'Malgun Gothic',
+                'Apple SD Gothic Neo', 'Noto Sans KR',
+                system-ui, 'Segoe UI', sans-serif;
             font-size: 1rem;
             padding: 8px 12px;
             border-radius: 12px;
@@ -98,7 +108,10 @@
 
         /* ---------------------- 2. Button Style ---------------------- */
         button, .block-button {
-            font-family: 'Jua', 'Gamja Flower', sans-serif;
+            font-family:
+                '맑은 고딕', 'Malgun Gothic',
+                'Apple SD Gothic Neo', 'Noto Sans KR',
+                system-ui, 'Segoe UI', sans-serif;
             padding: 12px 22px;
             margin: 6px;
             border: none;
@@ -202,7 +215,6 @@
         }
 
         .unanswered-label {
-            font-family: 'Jua', 'Gamja Flower', sans-serif;
             font-size: 0.95rem;
             color: #6d4c41;
         }
@@ -239,7 +251,6 @@
         }
 
         .count-badge {
-            font-family: 'Jua', 'Gamja Flower', sans-serif;
             font-size: 1.1rem;
             margin-bottom: 4px;
             color: #37474f;
@@ -254,7 +265,6 @@
 
         .student-avatar {
             background: #ffffff;
-            font-family: 'Jua', 'Gamja Flower', sans-serif;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -327,7 +337,6 @@
         /* 타이머 */
         #timer-display,
         #student-timer-display {
-            font-family: 'Jua', 'Gamja Flower', sans-serif;
             font-size: 1rem;
             margin-bottom: 8px;
             color: #1565c0;
@@ -383,6 +392,7 @@
     <!-- 선생님 로그인 -->
     <div id="teacher-login-screen" class="hidden centered">
         <h3>👨‍🏫 선생님 비밀번호</h3>
+        <label for="teacher-password">비밀번호</label>
         <input type="password" id="teacher-password" placeholder="비밀번호를 입력하세요">
         <div style="margin-top: 10px;">
             <button class="block-button yellow-button" onclick="teacherLogin()">로그인</button>
@@ -561,14 +571,14 @@
     // 1. Firebase 설정 (필수 수정 영역)
     // ----------------------------------------------------------------------
     const firebaseConfig = {
-  apiKey: "AIzaSyAoEYmlGb4tvWtYEQyBusIlyRDajD7-wtI",
-  authDomain: "ox-quiz-ce39f.firebaseapp.com",
-  databaseURL: "https://ox-quiz-ce39f-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "ox-quiz-ce39f",
-  storageBucket: "ox-quiz-ce39f.firebasestorage.app",
-  messagingSenderId: "509722567204",
-  appId: "1:509722567204:web:728f6e3bd0851909d36eb1"
-};
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        databaseURL: "https://YOUR-PROJECT-ID-default-rtdb.firebaseio.com",
+        projectId: "YOUR-PROJECT-ID",
+        storageBucket: "YOUR-PROJECT-ID.appspot.com",
+        messagingSenderId: "...",
+        appId: "..."
+    };
 
     const app = firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
@@ -587,12 +597,10 @@
     let problemPool = [];
     let timerInterval = null;
 
-    // 학생 결과 계산용
     let lastUserLives = null;
     let lastUserCombo = null;
     let lastResultQuestionIndex = 0;
 
-    // 아바타 이동 애니메이션용
     const lastZoneMap = {}; // { studentId: 'out' | 'O' | 'X' }
 
     // 사운드
@@ -684,12 +692,10 @@
 
         updateLifeRuleInfo(currentGameState.comboThreshold);
 
-        // 선생님 화면
         if (!document.getElementById('teacher-view').classList.contains('hidden')) {
             updateTeacherView();
         }
 
-        // 학생 화면
         if (currentUser && !document.getElementById('student-view').classList.contains('hidden')) {
             updateStudentStateFromDB();
         }
@@ -796,7 +802,6 @@
             return;
         }
 
-        // 이미 진행 중인 퀴즈가 있다면 결과 처리
         if (currentGameState.isActive && timerInterval) {
             clearInterval(timerInterval);
             await processResults(true);
@@ -820,7 +825,6 @@
             isGameStarted: true
         };
 
-        // 학생 answered 초기화
         const studentUpdates = {};
         studentList.forEach(student => {
             if (student.lives > 0) {
@@ -863,7 +867,7 @@
             answerTime: Date.now()
         });
 
-        lastResultQuestionIndex = 0; // 다음 문제 결과 새로 보기 위해 초기화
+        lastResultQuestionIndex = 0;
     }
 
     // ----------------------------------------------------------------------
@@ -894,7 +898,6 @@
             prep.classList.add('hidden');
             live.classList.remove('hidden');
 
-            // 다음 문제로 넘어가기 대기 상태
             if (!state.showResult) {
                 document.getElementById('current-question').innerHTML =
                     `<span style="color:#fbc02d;">다음 문제 준비 완료!</span><br>` +
@@ -923,7 +926,7 @@
     // ----------------------------------------------------------------------
     // 7. Core Game Logic (결과 처리 / 종료)
     // ----------------------------------------------------------------------
-    async function processResults(isForced = false) {
+    async function processResults(isForced) {
         if (currentGameState.showResult || !currentGameState.isActive) return;
 
         clearInterval(timerInterval);
@@ -957,7 +960,6 @@
             showResult: true
         });
 
-        // 선생님 화면에서 잠시 결과를 보여준 뒤, 다음 문제 준비 상태로
         if (!document.getElementById('teacher-view').classList.contains('hidden')) {
             setTimeout(() => {
                 stateRef.update({ showResult: false });
@@ -976,9 +978,9 @@
         if (isCorrect) {
             resultScreen.className = 'correct-result';
             resultEmoji.textContent = '🎉';
-            let msg = `<span style="font-size:1.4rem;">정답이에요! 너무 잘했어요 👏</span>`;
+            let msg = '<span style="font-size:1.4rem;">정답이에요! 너무 잘했어요 👏</span>';
             if (isLifeGained) {
-                msg += `<br><span style="font-size:1.1rem;">⭐ 콤보로 목숨이 1개 늘어났어요!</span>`;
+                msg += '<br><span style="font-size:1.1rem;">⭐ 콤보로 목숨이 1개 늘어났어요!</span>';
             }
             resultMessage.innerHTML = msg;
             playSound(523, 0.15);
@@ -992,7 +994,7 @@
         }
     }
 
-    function endGame(isAllCompleted = false) {
+    function endGame(isAllCompleted) {
         if (!isAllCompleted && currentGameState.isActive) {
             processResults(true);
         }
@@ -1074,7 +1076,6 @@
             return;
         }
 
-        // 문제 푸는 시간
         if (state.isActive) {
             waiting.classList.add('hidden');
             result.classList.add('hidden');
@@ -1090,7 +1091,6 @@
             startTimer(remaining, 'student');
 
         } else if (state.showResult && state.questionIndex !== lastResultQuestionIndex) {
-            // 결과 화면 (각 문제당 1회만)
             answering.classList.add('hidden');
             waiting.classList.add('hidden');
             result.classList.remove('hidden');
@@ -1102,7 +1102,6 @@
             lastResultQuestionIndex = state.questionIndex;
 
         } else {
-            // 다음 문제 대기
             waiting.classList.remove('hidden');
             answering.classList.add('hidden');
             result.classList.add('hidden');
@@ -1139,7 +1138,7 @@
     }
 
     // ----------------------------------------------------------------------
-    // 9. Avatar Animation & Quiz Area (운동장 밖 → O/X 슝슝)
+    // 9. Avatar Animation & Quiz Area
     // ----------------------------------------------------------------------
     function createOrGetAvatarElement(student) {
         let avatar = document.querySelector(`.student-avatar[data-student-id="${student.id}"]`);
@@ -1156,24 +1155,20 @@
         const avatar = createOrGetAvatarElement(student);
         const currentParent = avatar.parentElement;
 
-        // 첫 렌더링이거나 동일 존이면 바로 붙이기
         if (!currentParent || lastZoneMap[student.id] === undefined || lastZoneMap[student.id] === newZone) {
             targetContainer.appendChild(avatar);
             lastZoneMap[student.id] = newZone;
             return;
         }
 
-        // 현재 위치
         const startRect = avatar.getBoundingClientRect();
         const startX = startRect.left + startRect.width / 2;
         const startY = startRect.top + startRect.height / 2;
 
-        // 목적지 위치(대략적인 중앙)
         const targetRect = targetContainer.getBoundingClientRect();
         const endX = targetRect.left + targetRect.width / 2;
         const endY = targetRect.top + 40;
 
-        // 날아가는 복제본
         const flying = avatar.cloneNode(true);
         flying.style.position = 'fixed';
         flying.style.left = (startX - startRect.width / 2) + 'px';
@@ -1204,19 +1199,16 @@
     }
 
     function updateQuizAreaViews() {
-        // 선생님 화면 컨테이너
         const unanswered = document.getElementById('unanswered-area');
         const oArea = document.getElementById('o-answers');
         const xArea = document.getElementById('x-answers');
 
-        // 학생 spectator 화면 컨테이너
         const unansweredSpec = document.getElementById('unanswered-area-spectator');
         const oSpec = document.getElementById('o-answers-spectator');
         const xSpec = document.getElementById('x-answers-spectator');
 
         if (!unanswered || !oArea || !xArea || !unansweredSpec || !oSpec || !xSpec) return;
 
-        // spectator 쪽은 새로 그리기
         unansweredSpec.innerHTML = '<span class="unanswered-label">[대기] 아직 답을 고르지 않은 아바타</span>';
         oSpec.innerHTML = '';
         xSpec.innerHTML = '';
@@ -1236,13 +1228,11 @@
                 xCount++;
             }
 
-            // 1) 선생님 화면: 애니메이션 이동
             let targetTeacher = unanswered;
             if (zone === 'O') targetTeacher = oArea;
             else if (zone === 'X') targetTeacher = xArea;
             moveAvatarWithAnimation(student, targetTeacher, zone);
 
-            // 2) 학생 spectator 화면: 즉시 렌더링
             const specAvatar = document.createElement('div');
             specAvatar.className = 'student-avatar';
             specAvatar.textContent = `${student.emoji} ${student.nickname}`;
@@ -1287,7 +1277,6 @@
                 clearInterval(timerInterval);
                 timerInterval = null;
                 if (role === 'teacher' && currentGameState.isActive) {
-                    // 시간 종료 → 결과 처리
                     processResults(false);
                 }
                 return;
@@ -1299,6 +1288,8 @@
 
 </body>
 </html>
+
+
 
 
 
