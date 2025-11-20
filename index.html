@@ -933,6 +933,7 @@
     function backToHome() {
         isTeacherMode = false;
         currentUser = null;
+        finalShown = false;          // ★ 홈으로 돌아갈 땐 항상 초기화
         hideAll();
         document.getElementById('initial-screen').classList.remove('hidden');
     }
@@ -957,6 +958,7 @@
         isTeacherMode = true;
         hideAll();
         document.getElementById('teacher-view').classList.remove('hidden');
+        finalShown = false;  // 관리 화면 들어오면 새로 세션 시작 관점
     }
 
     function showStudentLogin() {
@@ -964,6 +966,7 @@
         currentUser = null;
         hideAll();
         document.getElementById('student-login').classList.remove('hidden');
+        finalShown = false;
     }
 
     function showStudentView() {
@@ -1054,6 +1057,7 @@
         if (currentGameState.resetToHome && currentGameState.resetToHome !== lastResetToHome) {
             lastResetToHome = currentGameState.resetToHome;
             if (!isTeacherMode) {
+                // 학생 쪽은 모두 처음 화면으로
                 currentUser = null;
                 finalShown = false;
                 hideAll();
@@ -1061,19 +1065,32 @@
             }
         }
 
+        // 선생님 화면이 열려 있을 때만 교사용 화면 업데이트
         if (!document.getElementById('teacher-view').classList.contains('hidden')) {
             updateTeacherView();
         }
 
+        // 학생 화면 열려 있을 때만 학생 상태 반영
         if (currentUser && !document.getElementById('student-view').classList.contains('hidden')) {
             updateStudentStateFromDB();
         }
 
+        // ★ 최종결과 화면 자동표시는
+        //  ① 선생님: 관리 화면이 열려 있고,
+        //  ② 학생: 학생 화면이 열려 있으며 currentUser가 있는 경우에만
+        //    → 즉, 첫 화면(선생님/학생 선택 화면)에서는 절대 안 뜸
         if (currentGameState.gameFinished && !finalShown) {
-            const alive = studentList
-                .filter(s => s.lives > 0)
-                .sort((a, b) => (b.combo || 0) - (a.combo || 0));
-            showFinalRankingScreen(alive);
+            const teacherViewOpen = !document.getElementById('teacher-view').classList.contains('hidden');
+            const studentViewOpen = !document.getElementById('student-view').classList.contains('hidden');
+
+            if ((isTeacherMode && teacherViewOpen) ||
+                (!isTeacherMode && currentUser && studentViewOpen)) {
+
+                const alive = studentList
+                    .filter(s => s.lives > 0)
+                    .sort((a, b) => (b.combo || 0) - (a.combo || 0));
+                showFinalRankingScreen(alive);
+            }
         }
     });
 
@@ -1104,11 +1121,19 @@
             }
         }
 
+        // 여기서도 동일한 조건으로만 최종 결과 자동 표시
         if (currentGameState.gameFinished && !finalShown) {
-            const alive = studentList
-                .filter(s => s.lives > 0)
-                .sort((a, b) => (b.combo || 0) - (a.combo || 0));
-            showFinalRankingScreen(alive);
+            const teacherViewOpen = !document.getElementById('teacher-view').classList.contains('hidden');
+            const studentViewOpen = !document.getElementById('student-view').classList.contains('hidden');
+
+            if ((isTeacherMode && teacherViewOpen) ||
+                (!isTeacherMode && currentUser && studentViewOpen)) {
+
+                const alive = studentList
+                    .filter(s => s.lives > 0)
+                    .sort((a, b) => (b.combo || 0) - (a.combo || 0));
+                showFinalRankingScreen(alive);
+            }
         }
     });
 
@@ -1324,6 +1349,7 @@
     }
 
     async function proceedToNextQuestion() {
+        // 규칙 설명 중이면 첫 문제로
         if (currentGameState.isGameStarted && currentGameState.preGameExplain) {
             await startFirstQuestion();
             return;
@@ -1710,7 +1736,6 @@
             showResult: false,
             isGameStarted: false,
             preGameExplain: false,
-            questionIndex: 0,
             gameFinished: true
         });
 
@@ -1959,7 +1984,7 @@
 
         const startRect = avatar.getBoundingClientRect();
         const startX = startRect.left + startRect.width / 2;
-               const startY = startRect.top + startRect.height / 2;
+        const startY = startRect.top + startRect.height / 2;
 
         const targetRect = targetContainer.getBoundingClientRect();
         const endX = newZone === 'O'
@@ -2152,6 +2177,7 @@
 
 </body>
 </html>
+
 
 
 
